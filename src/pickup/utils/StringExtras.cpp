@@ -69,7 +69,7 @@ std::string& Trim(std::string& s, const std::string& whitespace) {
   return TrimLeft(TrimRight(s, whitespace), whitespace);
 }
 
-std::size_t Replace(std::string& s, const std::string& from, const std::string& to) {
+size_t Replace(std::string& s, const std::string& from, const std::string& to) {
   if (from.empty() || s.empty()) {
     return 0;
   }
@@ -85,42 +85,44 @@ std::size_t Replace(std::string& s, const std::string& from, const std::string& 
   return count;
 }
 
-std::string ByteToHex(const uint8_t value, bool uppercase) {
+std::string ByteToHex(const uint8_t byte, bool uppercase) {
   auto digits = detail::HexDigitsForMode(uppercase ? detail::Uppercase : detail::Lowercase);
-  uint8_t high = static_cast<uint8_t>(value >> 4);
-  uint8_t low = static_cast<uint8_t>(value & 0x0F);
+  uint8_t high = static_cast<uint8_t>(byte >> 4);
+  uint8_t low = static_cast<uint8_t>(byte & 0x0F);
   return {digits[high], digits[low]};
 }
 
-std::string EncodeHex(const uint8_t* bytes, size_t length, bool uppercase) {
-  std::string result;
-  result.reserve(length * 2);
-  for (std::size_t i = 0; i < length; ++i) {
-    auto value = static_cast<uint8_t>(bytes[i]);
-    result.append(ByteToHex(value, uppercase));
+std::string EncodeHex(const uint8_t* bytes, size_t size, bool uppercase) {
+  std::string hex;
+  hex.reserve(size * 2);
+  for (size_t i = 0; i < size; ++i) {
+    auto byte = static_cast<uint8_t>(bytes[i]);
+    hex.append(ByteToHex(byte, uppercase));
   }
-  return result;
+  return hex;
 }
 
-std::size_t DecodeHex(const std::string& from, uint8_t* to, size_t length) {
-  if (from.length() % 2 != 0) {
+std::size_t DecodeHex(const std::string& hex, uint8_t* bytes, size_t size) {
+  if (hex.length() % 2 != 0) {
     return 0;
   }
 
-  std::size_t count = from.length() / 2;
-  if (count > length) {
-    return 0;
-  }
+  for (size_t i = 0; i != hex.length(); i += 2) {
+    if (i >= size * 2) {
+      return size;
+    }
 
-  for (int i = 0; i != from.length(); i += 2) {
-    auto value = (detail::HexCharToDecimal(from[i]) << 4) | detail::HexCharToDecimal(from[i + 1]);
-    if (!(value >= 0 && value <= 255)) {
+    auto high = detail::HexCharToDecimal(hex[i]);
+    auto low = detail::HexCharToDecimal(hex[i + 1]);
+    if (high < 0 || low < 0) {
       return 0;
     }
-    *to++ = value;
+
+    bytes[i / 2] = (high << 4) | low;
+    // *bytes++ = (high << 4) | low;
   }
 
-  return count;
+  return hex.length() / 2;
 }
 
 }  // namespace utils

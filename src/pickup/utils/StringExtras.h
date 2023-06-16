@@ -17,11 +17,11 @@ std::string& TrimLeft(std::string& s, const std::string& whitespace = " ");
 std::string& TrimRight(std::string& s, const std::string& whitespace = " ");
 std::string& Trim(std::string& s, const std::string& whitespace = " ");
 
-std::size_t Replace(std::string& s, const std::string& from, const std::string& to);
+size_t Replace(std::string& s, const std::string& from, const std::string& to);
 
-std::string ByteToHex(const uint8_t value, bool uppercase = false);
-std::string EncodeHex(const uint8_t* bytes, size_t length, bool uppercase = false);
-std::size_t DecodeHex(const std::string& from, uint8_t* to, size_t length);
+std::string ByteToHex(const uint8_t byte, bool uppercase = false);
+std::string EncodeHex(const uint8_t* bytes, size_t size, bool uppercase = false);
+size_t DecodeHex(const std::string& hex, uint8_t* bytes, size_t size);
 
 }  // namespace utils
 }  // namespace pickup
