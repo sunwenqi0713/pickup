@@ -1,5 +1,7 @@
 #include "pickup/utils/StringExtras.h"
 
+#include <algorithm>
+
 namespace pickup {
 namespace utils {
 
