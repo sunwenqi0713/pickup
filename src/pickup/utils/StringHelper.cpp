@@ -1,4 +1,4 @@
-#include "pickup/utils/StringExtras.h"
+#include "pickup/utils/StringHelper.h"
 
 #include <algorithm>
 
@@ -9,13 +9,13 @@ namespace detail {
 
 enum HexConversionMode { Lowercase, Uppercase };
 
-inline const char* HexDigitsForMode(HexConversionMode mode) {
+inline const char* hexDigitsForMode(HexConversionMode mode) {
   static const char lowercaseHexDigits[] = "0123456789abcdef";
   static const char uppercaseHexDigits[] = "0123456789ABCDEF";
   return mode == Lowercase ? lowercaseHexDigits : uppercaseHexDigits;
 }
 
-inline int HexCharToDecimal(char ch) {
+inline int hexCharToDecimal(char ch) {
   if (ch >= '0' && ch <= '9') return (ch - '0');
   if (ch >= 'A' && ch <= 'F') return (ch - 'A' + 10);
   if (ch >= 'a' && ch <= 'f') return (ch - 'a' + 10);
@@ -24,17 +24,17 @@ inline int HexCharToDecimal(char ch) {
 
 }  // namespace detail
 
-bool StartsWith(const std::string& s, const std::string& prefix) {
+bool startsWith(const std::string& s, const std::string& prefix) {
   return s.size() >= prefix.size() && s.substr(0, prefix.size()) == prefix;
 }
 
-bool EndsWith(const std::string& s, const std::string& suffix) {
+bool endsWith(const std::string& s, const std::string& suffix) {
   return s.size() >= suffix.size() && s.substr(s.size() - suffix.size()) == suffix;
 }
 
-bool Contains(const std::string& s, const std::string& parts) { return (std::string::npos != s.find(parts)); }
+bool contains(const std::string& s, const std::string& parts) { return (std::string::npos != s.find(parts)); }
 
-std::vector<std::string> Split(const std::string& s, const std::string& delimiters) {
+std::vector<std::string> split(const std::string& s, const std::string& delimiters) {
   std::vector<std::string> tokens;
   std::string::size_type last_pos = s.find_first_not_of(delimiters, 0);
   std::string::size_type pos = s.find_first_of(delimiters, last_pos);
@@ -47,31 +47,31 @@ std::vector<std::string> Split(const std::string& s, const std::string& delimite
   return tokens;
 }
 
-std::string ToUpper(std::string s) {
+std::string toUpper(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) { return std::toupper(ch); });
   return s;
 }
 
-std::string ToLower(std::string s) {
+std::string toLower(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) { return std::tolower(ch); });
   return s;
 }
 
-std::string& TrimLeft(std::string& s, const std::string& whitespace) {
+std::string& trimLeft(std::string& s, const std::string& whitespace) {
   s.erase(0, s.find_first_not_of(whitespace));
   return s;
 }
 
-std::string& TrimRight(std::string& s, const std::string& whitespace) {
+std::string& trimRight(std::string& s, const std::string& whitespace) {
   s.erase(s.find_last_not_of(whitespace) + 1);
   return s;
 }
 
-std::string& Trim(std::string& s, const std::string& whitespace) {
-  return TrimLeft(TrimRight(s, whitespace), whitespace);
+std::string& trim(std::string& s, const std::string& whitespace) {
+  return trimLeft(trimRight(s, whitespace), whitespace);
 }
 
-size_t Replace(std::string& s, const std::string& from, const std::string& to) {
+size_t replace(std::string& s, const std::string& from, const std::string& to) {
   if (from.empty() || s.empty()) {
     return 0;
   }
@@ -87,24 +87,26 @@ size_t Replace(std::string& s, const std::string& from, const std::string& to) {
   return count;
 }
 
-std::string ByteToHex(const uint8_t byte, bool uppercase) {
-  auto digits = detail::HexDigitsForMode(uppercase ? detail::Uppercase : detail::Lowercase);
+std::string byteToHex(const uint8_t byte, bool uppercase) {
+  auto digits = detail::hexDigitsForMode(uppercase ? detail::Uppercase : detail::Lowercase);
   uint8_t high = static_cast<uint8_t>(byte >> 4);
   uint8_t low = static_cast<uint8_t>(byte & 0x0F);
   return {digits[high], digits[low]};
 }
 
-std::string EncodeHex(const uint8_t* bytes, size_t size, bool uppercase) {
-  std::string hex;
-  hex.reserve(size * 2);
+std::string encodeHex(const uint8_t* bytes, size_t size, bool uppercase) {
+  auto digits = detail::hexDigitsForMode(uppercase ? detail::Uppercase : detail::Lowercase);
+  std::string result;
+  result.reserve(size * 2);
   for (size_t i = 0; i < size; ++i) {
     auto byte = static_cast<uint8_t>(bytes[i]);
-    hex.append(ByteToHex(byte, uppercase));
+    result += digits[(byte >> 4) & 0xF];
+		result += digits[byte & 0xF];
   }
-  return hex;
+  return result;
 }
 
-std::size_t DecodeHex(const std::string& hex, uint8_t* bytes, size_t size) {
+std::size_t decodeHex(const std::string& hex, uint8_t* bytes, size_t size) {
   if (hex.length() % 2 != 0) {
     return 0;
   }
@@ -114,8 +116,8 @@ std::size_t DecodeHex(const std::string& hex, uint8_t* bytes, size_t size) {
       return size;
     }
 
-    auto high = detail::HexCharToDecimal(hex[i]);
-    auto low = detail::HexCharToDecimal(hex[i + 1]);
+    auto high = detail::hexCharToDecimal(hex[i]);
+    auto low = detail::hexCharToDecimal(hex[i + 1]);
     if (high < 0 || low < 0) {
       return 0;
     }
@@ -125,6 +127,27 @@ std::size_t DecodeHex(const std::string& hex, uint8_t* bytes, size_t size) {
   }
 
   return hex.length() / 2;
+}
+
+int binaryToDecimal(const std::string& binary) {
+    int decimal = 0, base = 1;
+    int len = binary.length();
+    for (int i = len - 1; i >= 0; --i) {
+        if (binary[i] == '1') {
+            decimal += base;
+        }
+        base *= 2;
+    }
+    return decimal;
+}
+
+std::string decimalToBinary(int decimal) {
+    std::string binary = "";
+    while (decimal > 0) {
+        binary = (decimal % 2 == 0 ? '0' : '1') + binary;
+        decimal /= 2;
+    }
+    return binary;
 }
 
 }  // namespace utils
