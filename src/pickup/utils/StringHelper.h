@@ -5,7 +5,9 @@
 namespace pickup {
 namespace utils {
 
+bool startsWith(const std::string& s, char ch);
 bool startsWith(const std::string& s, const std::string& prefix);
+bool endsWith(const std::string& s, char ch);
 bool endsWith(const std::string& s, const std::string& suffix);
 
 bool contains(const std::string& s, const std::string& parts);
@@ -19,6 +21,9 @@ std::string& trimRight(std::string& s, const std::string& whitespace = " ");
 std::string& trim(std::string& s, const std::string& whitespace = " ");
 
 size_t replace(std::string& s, const std::string& from, const std::string& to);
+
+std::string implode(char glue, const std::vector<std::string> &pieces);
+std::string implode(const std::string &glue, const std::vector<std::string> &pieces);
 
 std::string byteToHex(const uint8_t byte, bool uppercase = false);
 std::string encodeHex(const uint8_t* bytes, size_t size, bool uppercase = false);

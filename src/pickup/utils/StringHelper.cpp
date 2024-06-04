@@ -24,8 +24,16 @@ inline int hexCharToDecimal(char ch) {
 
 }  // namespace detail
 
+bool startsWith(const std::string& s, char ch) {
+  return !s.empty() && s.back() == ch;
+}
+
 bool startsWith(const std::string& s, const std::string& prefix) {
   return s.size() >= prefix.size() && s.substr(0, prefix.size()) == prefix;
+}
+
+bool endsWith(const std::string& s, char ch) {
+  return !s.empty() && s.front() == ch;
 }
 
 bool endsWith(const std::string& s, const std::string& suffix) {
@@ -85,6 +93,30 @@ size_t replace(std::string& s, const std::string& from, const std::string& to) {
   }
 
   return count;
+}
+
+std::string implode(char glue, const std::vector<std::string> &pieces) {
+	std::string s;
+	if (!pieces.empty()) {
+		s.append(pieces[0]);
+		for (size_t i = 1; i < pieces.size(); ++i) {
+			s.push_back(glue);
+			s.append(pieces[i]);
+		}
+	}
+	return s;
+}
+
+std::string implode(const std::string &glue, const std::vector<std::string> &pieces) {
+	std::string s;
+	if (!pieces.empty()) {
+		s.append(pieces[0]);
+		for (size_t i = 1; i < pieces.size(); ++i) {
+			s.append(glue);
+			s.append(pieces[i]);
+		}
+	}
+	return s;
 }
 
 std::string byteToHex(const uint8_t byte, bool uppercase) {
