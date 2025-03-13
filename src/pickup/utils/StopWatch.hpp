@@ -1,27 +1,61 @@
 #pragma once
-
 #include <chrono>
+#include <iostream>
 
 /*
 // Usage:
-StopWatch sw;
-std::cout << "Elapsed " << std::chrono::duration_cast<std::chrono::milliseconds>(sw.elapsed()) << std::endl;
+Stopwatch sw;
+std::cout << "Elapsed " << sw.elapsed() << std::endl;
 */
 
 namespace pickup {
 namespace utils {
-
-class StopWatch {
-  using clock = std::chrono::steady_clock;
-  std::chrono::time_point<clock> start_tp_;
-
- public:
-  StopWatch() : start_tp_{clock::now()} {}
-
-  std::chrono::duration<double> elapsed() const { return std::chrono::duration<double>(clock::now() - start_tp_); }
-
-  void reset() { start_tp_ = clock::now(); }
-};
-
+  
+  class Stopwatch {
+   public:
+    Stopwatch() : running_(false) {}
+    ~Stopwatch() = default;
+  
+    void start() {
+      if (!running_) {
+        start_time_ = std::chrono::high_resolution_clock::now();
+        running_ = true;
+      }
+    }
+  
+    void stop() {
+      if (running_) {
+        auto now = std::chrono::high_resolution_clock::now();
+        elapsed_ += now - start_time_;
+        running_ = false;
+      }
+    }
+  
+    template <typename Duration = std::chrono::milliseconds>
+    auto elapsed() const {
+      if (running_) {
+        auto now = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration_cast<Duration>(elapsed_ + (now - start_time_)).count();
+      } else {
+        return std::chrono::duration_cast<Duration>(elapsed_).count();
+      }
+    }
+  
+    void reset() {
+      elapsed_ = std::chrono::nanoseconds(0);
+      running_ = false;
+    }
+  
+    void print(const std::string& msg = "") const {
+      auto ns = elapsed<std::chrono::nanoseconds>();
+      std::cout << msg << "Cost: " << ns << " ns (" << ns / 1000.0 << " μs, " << ns / 1000000.0 << " ms)\n";
+    }
+  
+   private:
+    std::chrono::high_resolution_clock::time_point start_time_;
+    std::chrono::nanoseconds elapsed_{};
+    bool running_;
+  };
+  
 }  // namespace utils
 }  // namespace pickup
