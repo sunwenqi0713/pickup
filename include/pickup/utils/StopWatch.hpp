@@ -53,7 +53,7 @@ namespace utils {
   
    private:
     std::chrono::high_resolution_clock::time_point start_time_;
-    std::chrono::nanoseconds elapsed_{};
+    std::chrono::high_resolution_clock::duration elapsed_{};
     bool running_;
   };
   
