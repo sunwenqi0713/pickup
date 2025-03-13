@@ -4,17 +4,17 @@
 
 /*
 // Usage:
-Stopwatch sw;
+StopWatch sw;
 std::cout << "Elapsed " << sw.elapsed() << std::endl;
 */
 
 namespace pickup {
 namespace utils {
   
-  class Stopwatch {
+  class StopWatch {
    public:
-    Stopwatch() : running_(false) {}
-    ~Stopwatch() = default;
+    StopWatch() : running_(false) {}
+    ~StopWatch() = default;
   
     void start() {
       if (!running_) {

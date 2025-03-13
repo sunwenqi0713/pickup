@@ -5,7 +5,7 @@ project (pickup)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(
- src
+ include
 )
 
 file(GLOB_RECURSE PROJECT_SOURCES ${PROJECT_SOURCE_DIR}/src "*.cpp")
