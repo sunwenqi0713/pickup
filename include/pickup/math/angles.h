@@ -8,7 +8,7 @@
  * degrees = radians x 180 / π
  */
 namespace pickup {
-namespace utils {
+namespace math {
 
 /*!
  * @brief 将角度从度数转换为弧度
@@ -44,5 +44,5 @@ static inline double normalizeAnglePositive(double angle);
  */
 static inline double normalizeAngle(double angle);
 
-}  // namespace utils
+}  // namespace math
 }  // namespace pickup

@@ -4,7 +4,7 @@
 #include <math.h>
 
 namespace pickup {
-namespace utils {
+namespace math {
 
 double fromDegrees(double degrees) { return degrees * M_PI / 180.0; }
 
@@ -22,5 +22,5 @@ double normalizeAngle(double angle) {
   return result - M_PI;
 }
 
-}  // namespace utils
+}  // namespace math
 }  // namespace pickup
