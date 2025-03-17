@@ -1,4 +1,4 @@
-#include "pickup/utils/StringHelper.h"
+#include "pickup/utils/StringUtils.h"
 
 #include <algorithm>
 
