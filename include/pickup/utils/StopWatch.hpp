@@ -5,6 +5,8 @@
 /*
 // Usage:
 StopWatch sw;
+sw.start();
+func();
 std::cout << "Elapsed " << sw.elapsed() << std::endl;
 */
 
