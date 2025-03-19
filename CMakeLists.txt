@@ -10,12 +10,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #---- project configuration ----
 option(PICKUP_STATIC_LIBS "Build shared libraries" ON)
-option(PICKUP_ENABLE_TESTS "Build the tests" OFF)
+option(PICKUP_UNIT_TESTS "Build the unit tests" ON)
 option(PICKUP_EXAMPLES "Build tutorials and examples" ON)
-
-if (PICKUP_ENABLE_TESTS)
-    find_package(GTest)
-endif()
 
 set(PICKUP_LIBRARY ${PROJECT_NAME})
 
@@ -34,6 +30,15 @@ else()
     add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 endif()
 
+######################################################
+
+if (PICKUP_UNIT_TESTS)
+    add_subdirectory(tests)
+endif()
+
 if(PICKUP_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+######################################################
+# INSTALL
