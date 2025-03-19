@@ -3,6 +3,7 @@
 
 set(PICKUP_TESTS
     BitOperatorTest.cpp
+    anglesTest.cpp
 )
 
 set(TEST_DEPENDECIES
