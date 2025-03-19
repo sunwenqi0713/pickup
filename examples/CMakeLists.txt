@@ -13,3 +13,4 @@ endfunction()
 
 CompileHeaderOnlyExample("FactoryDemo")
 CompileHeaderOnlyExample("StopWatchDemo")
+CompileHeaderOnlyExample("unusedDemo")
