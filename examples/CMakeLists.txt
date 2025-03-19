@@ -11,5 +11,5 @@ function(CompileHeaderOnlyExample name)
     add_executable(${name}  ${name}.cpp )
 endfunction()
 
+CompileHeaderOnlyExample("FactoryDemo")
 CompileHeaderOnlyExample("StopWatchDemo")
-
