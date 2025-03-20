@@ -10,7 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #---- project configuration ----
 option(PICKUP_STATIC_LIBS "Build shared libraries" ON)
-option(PICKUP_UNIT_TESTS "Build the unit tests" ON)
+option(PICKUP_UNIT_TESTS "Build the unit tests" OFF)
 option(PICKUP_EXAMPLES "Build tutorials and examples" ON)
 
 set(PICKUP_LIBRARY ${PROJECT_NAME})
