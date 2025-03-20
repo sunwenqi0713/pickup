@@ -6,6 +6,16 @@
 
 namespace pickup {
 namespace thread {
+
+enum class ThreadPriority {
+  Lowest,       // 最低（后台任务）
+  BelowNormal,  // 低于正常（非关键任务）
+  Normal,       // 默认（常规任务）
+  AboveNormal,  // 高于正常（I/O密集型）
+  Highest,      // 最高（实时计算）
+  Critical      // 关键系统级（慎用）
+};
+
 /**
  * @brief 对std::thread的封装
  *
@@ -95,6 +105,13 @@ class Thread {
    * @param name
    */
   static void set_name(const std::string& name) noexcept;
+
+  /**
+   * @brief 设置线程优先级
+   *
+   * @param priority
+   */
+  static void set_thread_priority(int priority) noexcept;
 
  private:
   static constexpr size_t kDefaultNumberOfCores = 8;
