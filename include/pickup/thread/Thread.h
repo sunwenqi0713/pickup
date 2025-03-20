@@ -37,8 +37,10 @@ class Thread {
          std::function<void(const std::string& thread_name)> thread_started_callback = nullptr,
          std::function<void(const std::string& thread_name)> thread_terminated_callback = nullptr) {
     thread_ = std::thread([name = std::move(name), callable = std::forward<callable_type>(callable),
-                            thread_started_callback = std::move(thread_started_callback),
-                            thread_terminated_callback = std::move(thread_terminated_callback)]() mutable {
+                           thread_started_callback = std::move(thread_started_callback),
+                           thread_terminated_callback = std::move(thread_terminated_callback)]() mutable {
+      set_name(name);
+
       if (static_cast<bool>(thread_started_callback)) {
         thread_started_callback(name);
       }
@@ -86,6 +88,13 @@ class Thread {
    * @return size_t
    */
   static size_t hardware_concurrency() noexcept;
+
+  /**
+   * @brief 设置线程名称
+   *
+   * @param name
+   */
+  static void set_name(const std::string& name) noexcept;
 
  private:
   static constexpr size_t kDefaultNumberOfCores = 8;

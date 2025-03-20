@@ -22,6 +22,7 @@ include_directories(
 list(APPEND PROJECT_SOURCES
     src/angles.cpp
     src/StringUtils.cpp
+    src/Thread.cpp
 )
 
 if (PICKUP_STATIC_LIBS)
