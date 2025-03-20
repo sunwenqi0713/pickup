@@ -29,13 +29,15 @@ void Thread::set_name(const std::string& name) noexcept {
 }
 
 void Thread::set_thread_priority(int priority) noexcept {
-  // Windows 优先级等级（-2到2之间）
+  // Windows 优先级等级
   const int priorities[] = {
-      THREAD_PRIORITY_IDLE,  // 最低
-      THREAD_PRIORITY_LOWEST,       THREAD_PRIORITY_BELOW_NORMAL,
-      THREAD_PRIORITY_NORMAL,  // 默认
-      THREAD_PRIORITY_ABOVE_NORMAL, THREAD_PRIORITY_HIGHEST,
-      THREAD_PRIORITY_TIME_CRITICAL  // 最高
+      THREAD_PRIORITY_IDLE,          // 空闲优先级
+      THREAD_PRIORITY_LOWEST,        // 最低优先级
+      THREAD_PRIORITY_BELOW_NORMAL,  // 低于正常的优先级
+      THREAD_PRIORITY_NORMAL,        // 正常优先级（默认）
+      THREAD_PRIORITY_ABOVE_NORMAL,  // 高于正常的优先级
+      THREAD_PRIORITY_HIGHEST,       // 最高优先级
+      THREAD_PRIORITY_TIME_CRITICAL  // 时间关键优先级
   };
 
   if (priority >= 0 && priority <= 6) {

@@ -7,7 +7,7 @@
 namespace pickup {
 namespace thread {
 
-enum class ThreadPriority {
+enum ThreadPriority {
   Lowest,       // 最低（后台任务）
   BelowNormal,  // 低于正常（非关键任务）
   Normal,       // 默认（常规任务）
