@@ -24,6 +24,8 @@ list(APPEND PROJECT_SOURCES
     src/StringUtils.cpp
     src/Thread.cpp
     src/ThreadPool.cpp
+    src/Subsystem.cpp
+    src/Application.cpp
 )
 
 if (PICKUP_STATIC_LIBS)
