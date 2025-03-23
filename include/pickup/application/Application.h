@@ -1,9 +1,9 @@
 #pragma once
 
 #include <chrono>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include "pickup/application/Subsystem.h"
 
@@ -15,15 +15,16 @@ class Application {
   using ArgVec = std::vector<std::string>;
   using SubsystemVec = std::vector<Subsystem::Ptr>;
 
-  explicit Application(int argc, char** argv);
+  Application();
   ~Application();
+
+  bool init(int argc, char** argv);
+  virtual int run();
 
   virtual bool onStartUp() = 0;
   virtual void onCleanUp() = 0;
-  virtual int run();
   virtual int main(const ArgVec& args);
 
-  void setArgs(int argc, char** argv);
   /**
    * @brief 添加子系统
    *
@@ -41,7 +42,11 @@ class Application {
     std::cout << "Subsystem not found: " << typeid(SubsystemType).name() << std::endl;
   }
 
+  void parseArguments(int argc, char** argv);
   void loadConfiguration(const std::string& path);
+  void initializingLogger();
+
+  std::chrono::steady_clock::duration Application::uptime() const;
 
  protected:
   void initialize();
@@ -49,10 +54,11 @@ class Application {
   void reinitialize();
 
  private:
-  std::string name_;
+  ArgVec args_;
   SubsystemVec subsystems_;
   bool initialized_ = false;
-  ArgVec args_;
+  std::atomic<bool> should_exit_{false};
+  std::chrono::steady_clock::time_point start_time_;
 };
 
 }  // namespace application
