@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -46,7 +47,7 @@ class Application {
   void loadConfiguration(const std::string& path);
   void initializingLogger();
 
-  std::chrono::steady_clock::duration Application::uptime() const;
+  std::chrono::steady_clock::duration uptime() const;
 
  protected:
   void initialize();
@@ -57,7 +58,7 @@ class Application {
   ArgVec args_;
   SubsystemVec subsystems_;
   bool initialized_ = false;
-  std::atomic<bool> should_exit_{false};
+  std::atomic_bool should_exit_{false};
   std::chrono::steady_clock::time_point start_time_;
 };
 
