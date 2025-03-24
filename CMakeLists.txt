@@ -27,6 +27,7 @@ list(APPEND PROJECT_SOURCES
     src/Event.cpp
     src/Subsystem.cpp
     src/Application.cpp
+    src/Time.cpp
 )
 
 if (PICKUP_STATIC_LIBS)
