@@ -24,6 +24,7 @@ list(APPEND PROJECT_SOURCES
     src/StringUtils.cpp
     src/Thread.cpp
     src/ThreadPool.cpp
+    src/Event.cpp
     src/Subsystem.cpp
     src/Application.cpp
 )
