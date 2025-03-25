@@ -21,6 +21,12 @@ void timespan_example() {
 
 void datetime_example() {
   DateTime now = DateTime::now();
+  std::cout << "Current year: " << now.year() << std::endl;
+  std::cout << "Current month: " << now.month() << std::endl;
+  std::cout << "Current day: " << now.day() << std::endl;
+  std::cout << "Current hour: " << now.hour() << std::endl;
+  std::cout << "Current minute: " << now.minute() << std::endl;
+  std::cout << "Current second: " << now.second() << std::endl;
   std::cout << "Current time: " << now.format("%Y-%m-%d %H:%M:%S") << std::endl;
 
   DateTime dt(2023, 12, 25, 15, 30);
