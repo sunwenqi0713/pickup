@@ -51,7 +51,7 @@ class Event {
    * @brief 触发事件
    * @note 本操作会唤醒所有等待线程，事件状态将保持触发状态直到调用 reset()
    */
-  void signal();
+  void set();
 
   /**
    * @brief 重置事件状态为未触发

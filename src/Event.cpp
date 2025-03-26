@@ -26,7 +26,7 @@ bool Event::wait(int64_t timeoutMs) {
   return true;
 }
 
-void Event::signal() {
+void Event::set() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   triggered_ = true;
