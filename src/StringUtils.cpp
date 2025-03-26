@@ -95,7 +95,7 @@ size_t replace(std::string& s, const std::string& from, const std::string& to) {
   return count;
 }
 
-std::string implode(char glue, const std::vector<std::string> &pieces) {
+std::string join(char glue, const std::vector<std::string> &pieces) {
 	std::string s;
 	if (!pieces.empty()) {
 		s.append(pieces[0]);
@@ -107,7 +107,7 @@ std::string implode(char glue, const std::vector<std::string> &pieces) {
 	return s;
 }
 
-std::string implode(const std::string &glue, const std::vector<std::string> &pieces) {
+std::string join(const std::string &glue, const std::vector<std::string> &pieces) {
 	std::string s;
 	if (!pieces.empty()) {
 		s.append(pieces[0]);
