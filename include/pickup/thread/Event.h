@@ -60,11 +60,11 @@ class Event {
   void reset();
 
  private:
-  bool manualReset_;  // 标识是否为手动重置模式
+  bool manualReset_;  ///< 标识是否为手动重置模式
 
   std::mutex mutex_;
   std::condition_variable cv_;
-  std::atomic<bool> triggered_{false};  // 事件触发状态标志
+  std::atomic<bool> triggered_{false};  ///< 事件触发状态标志
 };
 
 }  // namespace thread

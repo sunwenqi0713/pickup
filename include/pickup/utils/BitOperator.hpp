@@ -34,7 +34,7 @@ class BitOperator {
   void print() const { std::cout << "Binary: " << std::bitset<sizeof(T) * 8>(data_) << std::endl; }
 
  private:
-  T data_;  // 存储位操作的数据
+  T data_;  ///< 存储位操作的数据
 };
 
 }  // namespace utils

@@ -162,10 +162,10 @@ class Channel {
   size_t size() const { return queue_.size(); }
 
  private:
-  std::queue<T> queue_;         // 数据存储队列
-  mutable std::mutex mutex_;    // 队列操作互斥锁
-  std::condition_variable cv_;  // 条件变量用于线程通知
-  bool closed_;                 // 通道关闭状态标志
+  std::queue<T> queue_;         ///< 数据存储队列
+  mutable std::mutex mutex_;    ///< 队列操作互斥锁
+  std::condition_variable cv_;  ///< 条件变量用于线程通知
+  bool closed_;                 ///< 通道关闭状态标志
 };
 
 }  // namespace thread
