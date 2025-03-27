@@ -5,6 +5,9 @@
 #include <stdexcept>
 #include <vector>
 
+namespace pickup {
+namespace utils {
+
 /**
  * @class CircularBuffer
  * @brief 高效环形缓冲区模板类，支持动态扩容、移动语义和覆盖统计
@@ -67,22 +70,22 @@ class CircularBuffer {
   /// @name 元素访问
   /// @{
   T& front() {
-    check_non_empty();
+    check_empty();
     return data_[head_];
   }
 
   const T& front() const {
-    check_non_empty();
+    check_empty();
     return data_[head_];
   }
 
   T& back() {
-    check_non_empty();
+    check_empty();
     return data_[(tail_ + capacity_ - 1) % capacity_];
   }
 
   const T& back() const {
-    check_non_empty();
+    check_empty();
     return data_[(tail_ + capacity_ - 1) % capacity_];
   }
 
@@ -166,7 +169,7 @@ class CircularBuffer {
   }
 
   // 非空检查
-  void check_non_empty() const {
+  void check_empty() const {
     if (empty()) {
       throw std::out_of_range("Accessing empty circular buffer");
     }
@@ -198,3 +201,6 @@ class CircularBuffer {
   size_t capacity_ = 0;       ///< 缓冲区容量
   size_t overrun_count_ = 0;  ///< 元素覆盖计数器
 };
+
+}  // namespace utils
+}  // namespace pickup
