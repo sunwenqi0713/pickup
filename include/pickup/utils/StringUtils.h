@@ -26,12 +26,5 @@ size_t replace(std::string& s, const std::string& from, const std::string& to);
 std::string join(char glue, const std::vector<std::string> &pieces);
 std::string join(const std::string &glue, const std::vector<std::string> &pieces);
 
-std::string byteToHex(const uint8_t byte, bool uppercase = false);
-std::string encodeHex(const uint8_t* bytes, size_t size, bool uppercase = false);
-size_t decodeHex(const std::string& hex, uint8_t* bytes, size_t size);
-
-int binaryToDecimal(const std::string& binary);
-std::string decimalToBinary(int decimal);
-
 }  // namespace utils
 }  // namespace pickup

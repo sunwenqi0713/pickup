@@ -28,6 +28,7 @@ list(APPEND PROJECT_SOURCES
     src/Subsystem.cpp
     src/Application.cpp
     src/Result.cpp
+    src/hex.cpp
 )
 
 if (PICKUP_STATIC_LIBS)

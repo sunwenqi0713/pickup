@@ -5,25 +5,6 @@
 namespace pickup {
 namespace utils {
 
-namespace detail {
-
-enum HexConversionMode { Lowercase, Uppercase };
-
-inline const char* hexDigitsForMode(HexConversionMode mode) {
-  static const char lowercaseHexDigits[] = "0123456789abcdef";
-  static const char uppercaseHexDigits[] = "0123456789ABCDEF";
-  return mode == Lowercase ? lowercaseHexDigits : uppercaseHexDigits;
-}
-
-inline int hexCharToDecimal(char ch) {
-  if (ch >= '0' && ch <= '9') return (ch - '0');
-  if (ch >= 'A' && ch <= 'F') return (ch - 'A' + 10);
-  if (ch >= 'a' && ch <= 'f') return (ch - 'a' + 10);
-  return -1;
-}
-
-}  // namespace detail
-
 bool startsWith(const std::string& s, char ch) {
   return !s.empty() && s.back() == ch;
 }
@@ -117,69 +98,6 @@ std::string join(const std::string &glue, const std::vector<std::string> &pieces
 		}
 	}
 	return s;
-}
-
-std::string byteToHex(const uint8_t byte, bool uppercase) {
-  auto digits = detail::hexDigitsForMode(uppercase ? detail::Uppercase : detail::Lowercase);
-  uint8_t high = static_cast<uint8_t>(byte >> 4);
-  uint8_t low = static_cast<uint8_t>(byte & 0x0F);
-  return {digits[high], digits[low]};
-}
-
-std::string encodeHex(const uint8_t* bytes, size_t size, bool uppercase) {
-  auto digits = detail::hexDigitsForMode(uppercase ? detail::Uppercase : detail::Lowercase);
-  std::string result;
-  result.reserve(size * 2);
-  for (size_t i = 0; i < size; ++i) {
-    auto byte = static_cast<uint8_t>(bytes[i]);
-    result += digits[(byte >> 4) & 0xF];
-		result += digits[byte & 0xF];
-  }
-  return result;
-}
-
-std::size_t decodeHex(const std::string& hex, uint8_t* bytes, size_t size) {
-  if (hex.length() % 2 != 0) {
-    return 0;
-  }
-
-  for (size_t i = 0; i != hex.length(); i += 2) {
-    if (i >= size * 2) {
-      return size;
-    }
-
-    auto high = detail::hexCharToDecimal(hex[i]);
-    auto low = detail::hexCharToDecimal(hex[i + 1]);
-    if (high < 0 || low < 0) {
-      return 0;
-    }
-
-    bytes[i / 2] = (high << 4) | low;
-    // *bytes++ = (high << 4) | low;
-  }
-
-  return hex.length() / 2;
-}
-
-int binaryToDecimal(const std::string& binary) {
-    int decimal = 0, base = 1;
-    int len = binary.length();
-    for (int i = len - 1; i >= 0; --i) {
-        if (binary[i] == '1') {
-            decimal += base;
-        }
-        base *= 2;
-    }
-    return decimal;
-}
-
-std::string decimalToBinary(int decimal) {
-    std::string binary = "";
-    while (decimal > 0) {
-        binary = (decimal % 2 == 0 ? '0' : '1') + binary;
-        decimal /= 2;
-    }
-    return binary;
 }
 
 }  // namespace utils
