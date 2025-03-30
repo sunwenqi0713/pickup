@@ -92,14 +92,14 @@ std::vector<uint8_t> hexToBytes(const std::string& hex_str) {
   return bytes;
 }
 
-std::vector<uint8_t> hexToBytesWithDelimiter(const std::string& hex_str, char delimiter) {
+std::vector<uint8_t> hexToBytesWithSeparator(const std::string& hex_str, char separator) {
   std::vector<uint8_t> bytes;
   std::string clean_hex;
   clean_hex.reserve(hex_str.length());
 
   // 移除分隔符
   for (char c : hex_str) {
-    if (c != delimiter) {
+    if (c != separator) {
       clean_hex.push_back(c);
     }
   }

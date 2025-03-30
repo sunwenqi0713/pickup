@@ -19,7 +19,7 @@ std::string bytesToHexWithSeparator(const std::vector<uint8_t>& data, bool upper
 // 将十六进制字符串转换为字节数组
 std::vector<uint8_t> hexToBytes(const std::string& hex_str);
 // 支持分隔符
-std::vector<uint8_t> hexToBytesWithDelimiter(const std::string& hex_str, char delimiter = '-');
+std::vector<uint8_t> hexToBytesWithSeparator(const std::string& hex_str, char separator = ' ');
 
 }  // namespace encoding
 }  // namespace pickup
