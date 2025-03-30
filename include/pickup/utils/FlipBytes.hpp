@@ -108,7 +108,7 @@ struct do_byte_swap {
  * @return 字节顺序翻转后的值
  */
 template <class T>
-inline constexpr T FlipBytes(T value) noexcept {
+inline constexpr T flipBytes(T value) noexcept {
   // 编译期类型检查
   static_assert(std::is_arithmetic_v<T>, "FlipBytes only supports arithmetic types");
   static_assert(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8,
