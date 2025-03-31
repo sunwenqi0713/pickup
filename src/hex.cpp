@@ -1,5 +1,6 @@
 #include "pickup/encoding/hex.h"
-#include <stdexcept>
+
+#include <iostream>
 
 namespace pickup {
 namespace encoding {
@@ -57,10 +58,11 @@ std::string bytesToHexWithSeparator(const std::vector<uint8_t>& data, bool upper
   return bytesToHexWithSeparator(data.data(), data.size(), uppercase, separator);
 }
 
-std::vector<uint8_t> hexToBytes(const std::string& hex_str) {
+std::optional<std::vector<uint8_t>> hexToBytes(const std::string& hex_str) {
   // 验证输入有效性
   if (hex_str.length() % 2 != 0) {
-    throw std::invalid_argument("Hex string length must be even");
+    std::cerr << "Invalid hex string length: " << hex_str.length() << ", hex string length must be even." << std::endl;
+    return std::nullopt;
   }
 
   // 构建反向映射表（字符 -> 4位值）
@@ -82,7 +84,8 @@ std::vector<uint8_t> hexToBytes(const std::string& hex_str) {
     uint8_t low_nibble = lookup[static_cast<uint8_t>(hex_str[i + 1])];
 
     if (high_nibble == 0xFF || low_nibble == 0xFF) {
-      throw std::invalid_argument("Invalid hex character");
+      std::cerr << "Invalid hex character: " << hex_str[i] << " or " << hex_str[i + 1] << std::endl;
+      return std::nullopt;
     }
 
     // 组合高4位和低4位
@@ -92,7 +95,7 @@ std::vector<uint8_t> hexToBytes(const std::string& hex_str) {
   return bytes;
 }
 
-std::vector<uint8_t> hexToBytesWithSeparator(const std::string& hex_str, char separator) {
+std::optional<std::vector<uint8_t>> hexToBytesWithSeparator(const std::string& hex_str, char separator) {
   std::vector<uint8_t> bytes;
   std::string clean_hex;
   clean_hex.reserve(hex_str.length());

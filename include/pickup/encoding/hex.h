@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -17,9 +18,9 @@ std::string bytesToHexWithSeparator(const uint8_t* data, size_t len, bool upperc
 std::string bytesToHexWithSeparator(const std::vector<uint8_t>& data, bool uppercase = true, char separator = ' ');
 
 // 将十六进制字符串转换为字节数组
-std::vector<uint8_t> hexToBytes(const std::string& hex_str);
+std::optional<std::vector<uint8_t>> hexToBytes(const std::string& hex_str);
 // 支持分隔符
-std::vector<uint8_t> hexToBytesWithSeparator(const std::string& hex_str, char separator = ' ');
+std::optional<std::vector<uint8_t>> hexToBytesWithSeparator(const std::string& hex_str, char separator = ' ');
 
 }  // namespace encoding
 }  // namespace pickup
