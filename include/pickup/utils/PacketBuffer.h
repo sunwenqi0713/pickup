@@ -51,7 +51,7 @@ class PacketBuffer {
   // 写入原始字节
   void writeBytes(const uint8_t* data, size_t len) {
     ensureWritable(len);
-    std::copy(data, data + len, buffer_.begin() + write_pos_);
+    std::memcpy(buffer_.data() + write_pos_, data, len);
     write_pos_ += len;
   }
 
@@ -60,7 +60,7 @@ class PacketBuffer {
   T read(bool network_order = true) {
     checkReadable(sizeof(T));
     T value;
-    std::copy(buffer_.begin() + read_pos_, buffer_.begin() + read_pos_ + sizeof(T), reinterpret_cast<uint8_t*>(&value));
+    std::memcpy(&value, buffer_.data() + read_pos_, sizeof(T));
     read_pos_ += sizeof(T);
     if (network_order && sizeof(T) > 1) {
       value = ntoh(value);
@@ -71,7 +71,7 @@ class PacketBuffer {
   // 零拷贝方式读取数据（不移动读指针）
   void peekBytes(uint8_t* dest, size_t len) const {
     checkReadable(len);
-    std::copy(buffer_.begin() + read_pos_, buffer_.begin() + read_pos_ + len, dest);
+    std::memcpy(dest, buffer_.data() + read_pos_, len);
   }
 
   // 丢弃已读数据
@@ -108,7 +108,7 @@ class PacketBuffer {
     if (read_pos_ == 0) return;
 
     size_t readable = readableBytes();
-    std::copy(buffer_.begin() + read_pos_, buffer_.begin() + write_pos_, buffer_.begin());
+    std::memmove(buffer_.data(), buffer_.data() + read_pos_, readable);
     read_pos_ = 0;
     write_pos_ = readable;
   }
