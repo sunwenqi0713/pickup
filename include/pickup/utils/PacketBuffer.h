@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "pickup/utils/ByteOrder.hpp"
+
 namespace pickup {
 namespace utils {
 /**
@@ -128,22 +130,12 @@ class PacketBuffer {
   // 字节序转换帮助函数
   template <typename T>
   T hton(T value) const {
-    if constexpr (sizeof(T) == 2) {
-      return htons(value);
-    } else if constexpr (sizeof(T) == 4) {
-      return htonl(value);
-    } else if constexpr (sizeof(T) == 8) {
-      uint64_t tmp = value;
-      tmp = htonl(tmp >> 32) | (static_cast<uint64_t>(htonl(tmp & 0xFFFFFFFF)) << 32;
-      return tmp;
-    } else {
-      return value;
-    }
+    return utils::toBigEndian(value);  // 网络序转换
   }
 
   template <typename T>
   T ntoh(T value) const {
-    return hton(value);  // 网络序转换对称
+    return utils::fromBigEndian(value);  // 主机序转换
   }
 
  private:
