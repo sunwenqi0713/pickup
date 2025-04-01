@@ -16,7 +16,7 @@ class Derived : public Base {
 int main() {
   using namespace pickup::utils;
   Factory<std::string, Base> factory;
-  factory.registerCreateMethod("derived_class", []() { return std::make_unique<Derived>(); });
+  factory.registerCreator("derived_class", []() { return std::make_unique<Derived>(); });
   auto derived_ptr = factory.create("derived_class");
   std::cout << "class name: " << derived_ptr->Name() << std::endl;
   return 0;

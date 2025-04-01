@@ -1,56 +1,79 @@
 #pragma once
 
 #include <functional>
+#include <iostream>
 #include <map>
 #include <memory>
-#include <utility>
 
 namespace pickup {
 namespace utils {
 
+/**
+ * @brief 通用对象工厂模板类
+ * @tparam IdentifierType 类型标识符类型（通常为字符串/枚举）
+ * @tparam AbstractProduct 抽象产品类型（基类/接口）
+ *
+ * @note 典型用法：
+ * @code
+ * Factory<std::string, Shape> shapeFactory;
+ * shapeFactory.registerCreator("circle", []{ return std::make_unique<Circle>(); });
+ * auto circle = shapeFactory.create("circle");
+ * @endcode
+ */
 template <typename IdentifierType, class AbstractProduct>
 class Factory {
+  // 产品创建函数类型
   using CreateMethod = std::function<std::unique_ptr<AbstractProduct>()>;
+  // 注册表容器类型
   using MapContainer = std::map<IdentifierType, CreateMethod>;
 
  public:
-  bool registerCreateMethod(const IdentifierType &id, CreateMethod creator) {
-    auto id_iter = producers_.find(id);
-    if (id_iter == producers_.end()) {
-      producers_[id] = creator;
-      return true;
-    }
-    return false;
+  /**
+   * @brief 注册对象创建方法
+   * @param id 类型标识符
+   * @param creator 创建函数（需返回AbstractProduct派生类对象）
+   * @return 注册成功返回true，id已存在返回false
+   */
+  bool registerCreator(const IdentifierType& id, CreateMethod creator) {
+    return producers_.emplace(id, creator).second;
   }
 
-  bool contains(const IdentifierType &id) { return producers_.find(id) != producers_.end(); }
+  // 检查是否包含指定id的创建方法
+  bool contains(const IdentifierType& id) const { return producers_.find(id) != producers_.end(); }
 
-  bool unregister(const IdentifierType &id) { return producers_.erase(id) == 1; }
+  // 注销指定id的创建方法
+  bool unregister(const IdentifierType& id) { return producers_.erase(id) == 1; }
 
-  void clear() { producers_.clear(); }
+  // 清空所有注册项
+  void clear() noexcept { producers_.clear(); }
 
-  bool empty() const { return producers_.empty(); }
+  // 判断工厂是否为空
+  bool empty() const noexcept { return producers_.empty(); }
 
-  template <typename... Args>
-  std::unique_ptr<AbstractProduct> createObjectOrNull(const IdentifierType &id, Args &&...args) {
-    auto id_iter = producers_.find(id);
-    if (id_iter != producers_.end()) {
-      return std::unique_ptr<AbstractProduct>((id_iter->second)(std::forward<Args>(args)...));
-    }
-    return nullptr;
+  /**
+   * @brief 创建对象（安全版本）
+   * @return 成功返回对象指针，失败返回nullptr
+   */
+  std::unique_ptr<AbstractProduct> createObjectOrNull(const IdentifierType& id) {
+    auto iter = producers_.find(id);
+    return (iter != producers_.end()) ? iter->second() : nullptr;
   }
 
-  template <typename... Args>
-  std::unique_ptr<AbstractProduct> create(const IdentifierType &id, Args &&...args) {
-    auto result = createObjectOrNull(id, std::forward<Args>(args)...);
-    if (result == nullptr) {
-      std::cout << "Factory could not create Object of type : " << id << std::endl;
+  /**
+   * @brief 创建对象
+   * @return 成功返回对象指针，失败输出日志并返回nullptr
+   * @note 后续改为抛出异常或自定义错误处理策略
+   */
+  std::unique_ptr<AbstractProduct> create(const IdentifierType& id) {
+    auto obj = createObjectOrNull(id);
+    if (!obj) {
+      std::cerr << "Factory creation failed for type: " << id << std::endl;
     }
-    return result;
+    return obj;
   }
 
  private:
-  MapContainer producers_;
+  MapContainer producers_;  ///< 类型标识符到创建方法的映射
 };
 
 }  // namespace utils
