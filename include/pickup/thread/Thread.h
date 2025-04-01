@@ -6,69 +6,62 @@
 
 namespace pickup {
 namespace thread {
-
-enum ThreadPriority {
-  Lowest,       // 最低（后台任务）
-  BelowNormal,  // 低于正常（非关键任务）
-  Normal,       // 默认（常规任务）
-  AboveNormal,  // 高于正常（I/O密集型）
-  Highest,      // 最高（实时计算）
-  Critical      // 关键系统级（慎用）
-};
-
 /**
- * @brief 对std::thread的封装
- *
+ * @file Thread.h
+ * @brief 线程类封装
+ * @note 该文件提供了一个跨平台的线程类封装，支持线程创建、命名、优先级设置等功能。
  */
 class Thread {
  public:
   /**
-   * @brief 默认构造
-   *
+   * @enum ThreadPriority
+   * @brief 线程优先级枚举，跨平台抽象（具体实现依赖操作系统API）
+   * @note 不同平台优先级映射：
+   *       - Windows：使用内核级优先级（0-6）
+   *       - Unix/Mac：需配合实时调度策略（SCHED_RR/SCHED_FIFO）
+   *       Critical级别可能需要root/admin权限
    */
+  enum ThreadPriority {
+    Lowest,       ///< 最低（后台任务）
+    BelowNormal,  ///< 低于正常（非关键任务）
+    Normal,       ///< 默认（常规任务）
+    AboveNormal,  ///< 高于正常（I/O密集型）
+    Highest,      ///< 最高（实时计算）
+    Critical      ///< 关键系统级（慎用）
+  };
+
   Thread() noexcept = default;
-  /**
-   * @brief 移动构造
-   *
-   */
   Thread(Thread&&) noexcept = default;
 
   /**
-   * @brief 新建一个线程
-   *
-   * @tparam callable_type 可执行的函数类型
-   * @param callable 线程要执行的函数
-   * @param name 线程名称
-   * @param thread_started_callback 线程执行前调用的函数
-   * @param thread_terminated_callback 线程结束后调用的函数
+   * @brief 构造并启动线程
+   * @tparam callable_type 可调用类型（函数/lambda等）
+   * @param callable 线程执行主体
+   * @param name 线程名称（部分系统限制长度，如Linux最长16字符）
+   * @param thread_started_callback 线程启动后回调（在callable之前执行）
+   * @param thread_terminated_callback 线程结束前回调（在callable之后执行）
    */
   template <class callable_type>
   Thread(callable_type&& callable, std::string name = "",
          std::function<void(const std::string& thread_name)> thread_started_callback = nullptr,
          std::function<void(const std::string& thread_name)> thread_terminated_callback = nullptr) {
     thread_ = std::thread([name = std::move(name), callable = std::forward<callable_type>(callable),
-                           thread_started_callback = std::move(thread_started_callback),
-                           thread_terminated_callback = std::move(thread_terminated_callback)]() mutable {
+                           started_cb = std::move(thread_started_callback),
+                           terminated_cb = std::move(thread_terminated_callback)]() mutable {
       set_name(name);
 
-      if (static_cast<bool>(thread_started_callback)) {
-        thread_started_callback(name);
+      if (started_cb) {
+        started_cb(name);
       }
 
       callable();
 
-      if (static_cast<bool>(thread_terminated_callback)) {
-        thread_terminated_callback(name);
+      if (terminated_cb) {
+        terminated_cb(name);
       }
     });
   }
 
-  /**
-   * @brief 移动赋值
-   *
-   * @param rhs
-   * @return Thread&
-   */
   Thread& operator=(Thread&& rhs) noexcept = default;
 
   /**
@@ -114,7 +107,7 @@ class Thread {
   static void set_thread_priority(int priority) noexcept;
 
  private:
-  static constexpr size_t kDefaultNumberOfCores = 8;
+  static constexpr size_t kDefaultNumberOfCores = 8;  ///< 硬件并发数默认值（当无法获取时）
   std::thread thread_;
 };
 
