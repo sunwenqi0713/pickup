@@ -11,37 +11,38 @@ namespace time {
 
 class TimeSpan {
  public:
-  // 时间单位类型定义
-  using Seconds = std::chrono::seconds;
-  using Minutes = std::chrono::minutes;
-  using Hours = std::chrono::hours;
-  using Days = std::chrono::duration<int, std::ratio<86400>>;
+  // Initialize timespan with a zero time duration
+  TimeSpan() noexcept : duration_(0) {}
+  // Initialize timespan with a specific time duration in nanoseconds
+  explicit TimeSpan(int64_t duration) noexcept : duration_(duration) {};
+  // Initialize timespan with a given std::chrono duration
+  template <class Rep, class Period>
+  explicit TimeSpan(const std::chrono::duration<Rep, Period>& duration) noexcept
+      : _duration(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count()) {}
+  TimeSpan(const TimeSpan&) noexcept = default;
+  TimeSpan(TimeSpan&&) noexcept = default;
+  ~TimeSpan() noexcept = default;
 
-  // 构造方法
-  TimeSpan() = default;
-  explicit TimeSpan(Seconds sec) noexcept : duration_(sec) {}
-
-  TimeSpan(int days, int hours, int mins, int secs) {
-    duration_ = Seconds(secs) + Minutes(mins) + Hours(hours) + Days(days);
+  TimeSpan& operator=(int64_t duration) noexcept {
+    duration_ = duration;
+    return *this;
   }
-
-  // 获取时间分量
-  int days() const noexcept { return std::chrono::duration_cast<Days>(duration_).count(); }
-  int hours() const noexcept { return std::chrono::duration_cast<Hours>(duration_ % Days(1)).count(); }
-  int minutes() const noexcept { return std::chrono::duration_cast<Minutes>(duration_ % Hours(1)).count(); }
-  int seconds() const noexcept { return std::chrono::duration_cast<Seconds>(duration_ % Minutes(1)).count(); }
-
-  // 获取总时间量
-  int64_t totalDays() const noexcept { return std::chrono::duration_cast<Days>(duration_).count(); }
-  int64_t totalHours() const noexcept { return std::chrono::duration_cast<Hours>(duration_).count(); }
-  int64_t totalMinutes() const noexcept { return std::chrono::duration_cast<Minutes>(duration_).count(); }
-  int64_t totalSeconds() const noexcept { return duration_.count(); }
+  TimeSpan& operator=(const TimeSpan&) noexcept = default;
+  TimeSpan& operator=(TimeSpan&&) noexcept = default;
 
   // 运算符重载
   TimeSpan operator+(const TimeSpan& other) const noexcept { return TimeSpan(duration_ + other.duration_); }
   TimeSpan operator-(const TimeSpan& other) const noexcept { return TimeSpan(duration_ - other.duration_); }
+  TimeSpan& operator+=(int64_t offset) noexcept {
+    duration_ += offset;
+    return *this;
+  }
   TimeSpan& operator+=(const TimeSpan& other) noexcept {
     duration_ += other.duration_;
+    return *this;
+  }
+  TimeSpan& operator-=(int64_t offset) noexcept {
+    duration_ -= offset;
     return *this;
   }
   TimeSpan& operator-=(const TimeSpan& other) noexcept {
@@ -57,45 +58,35 @@ class TimeSpan {
   bool operator<=(const TimeSpan& other) const noexcept { return duration_ <= other.duration_; }
   bool operator>=(const TimeSpan& other) const noexcept { return duration_ >= other.duration_; }
 
-  // 格式化
-  std::string format(const std::string& fmt = "%D days %H:%M:%S") const {
-    std::stringstream ss;
-    for (size_t i = 0; i < fmt.size(); ++i) {
-      if (fmt[i] == '%' && i + 1 < fmt.size()) {
-        switch (fmt[++i]) {
-          case 'D':
-            ss << days();
-            break;
-          case 'H':
-            ss << std::setw(2) << std::setfill('0') << hours();
-            break;
-          case 'M':
-            ss << std::setw(2) << std::setfill('0') << minutes();
-            break;
-          case 'S':
-            ss << std::setw(2) << std::setfill('0') << seconds();
-            break;
-          case 't':
-            ss << totalSeconds();  // 总秒数
-            break;
-          case '%':
-            ss << '%';
-            break;
-          default:
-            throw std::invalid_argument("Invalid format specifier");
-        }
-      } else {
-        ss << fmt[i];
-      }
-    }
-    return ss.str();
+  // Convert timespan to the std::chrono nanoseconds duration
+  std::chrono::system_clock::duration chrono() const noexcept {
+    return std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::nanoseconds(duration_));
   }
 
-  // 转换为标准库duration
-  Seconds toDuration() const noexcept { return duration_; }
+  // 获取时间分量
+  int64_t days() const noexcept { return duration_ / (24 * 60 * 60 * 1000000000ll); }
+  int64_t hours() const noexcept { return duration_ / (60 * 60 * 1000000000ll); }
+  int64_t minutes() const noexcept { return duration_ / (60 * 1000000000ll); }
+  int64_t seconds() const noexcept { return duration_ / 1000000000; }
+  int64_t milliseconds() const noexcept { return duration_ / 1000000; }
+  int64_t microseconds() const noexcept { return duration_ / 1000; }
+  int64_t nanoseconds() const noexcept { return duration_; }
+
+  // 获取总时间量
+  int64_t total() const noexcept { return duration_; }
+
+  // create the timespan based on the given time components
+  static TimeSpan create(int64_t days, int64_t hours, int64_t minutes, int64_t seconds, int64_t milliseconds = 0,
+                         int64_t microseconds = 0, int64_t nanoseconds = 0) noexcept {
+    return TimeSpan((days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60 + seconds) * 1000000000ll +
+                    milliseconds * 1000000ll + microseconds * 1000ll + nanoseconds);
+  }
+
+  // get zero timespan
+  static TimeSpan zero() noexcept { return TimeSpan(0); }
 
  private:
-  Seconds duration_{0};
+  int64_t duration_;
 };
 
 }  // namespace time

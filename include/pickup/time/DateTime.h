@@ -52,22 +52,6 @@ class DateTime {
   int dayOfYear() const { return getLocalTm(&std::tm::tm_yday); }
   bool isLeapYear() { return isLeapYear(year()); }
 
-  // 时间操作
-  DateTime operator+(const TimeSpan& ts) { return DateTime(time_ + ts.toDuration()); }
-  DateTime operator-(const TimeSpan& ts) { return DateTime(time_ - ts.toDuration()); }
-  TimeSpan operator-(const DateTime& dt) {
-    return TimeSpan(std::chrono::duration_cast<TimeSpan::Seconds>(time_ - dt.time_));
-  }
-  DateTime& operator+=(const TimeSpan& ts) noexcept {
-    time_ += ts.toDuration();
-    return *this;
-  }
-
-  DateTime& operator-=(const TimeSpan& ts) noexcept {
-    time_ -= ts.toDuration();
-    return *this;
-  }
-
   // 比较运算符
   bool operator==(const DateTime& other) const noexcept { return time_ == other.time_; }
   bool operator!=(const DateTime& other) const noexcept { return time_ != other.time_; }
