@@ -1,9 +1,9 @@
-#include "pickup/encoding/hex.h"
+#include "pickup/codec/hex.h"
 
 #include <iostream>
 
 namespace pickup {
-namespace encoding {
+namespace codec {
 
 std::string bytesToHex(const uint8_t* data, size_t len, bool uppercase) {
   // 十六进制字符表
@@ -110,5 +110,5 @@ std::optional<std::vector<uint8_t>> hexToBytesWithSeparator(const std::string& h
   return hexToBytes(clean_hex);
 }
 
-}  // namespace encoding
+}  // namespace codec
 }  // namespace pickup

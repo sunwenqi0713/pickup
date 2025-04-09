@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace pickup {
-namespace encoding {
+namespace codec {
 
 // 将字节数组转换为十六进制字符串
 std::string bytesToHex(const uint8_t* data, size_t len, bool uppercase = true);
@@ -22,5 +22,5 @@ std::optional<std::vector<uint8_t>> hexToBytes(const std::string& hex_str);
 // 支持分隔符
 std::optional<std::vector<uint8_t>> hexToBytesWithSeparator(const std::string& hex_str, char separator = ' ');
 
-}  // namespace encoding
+}  // namespace codec
 }  // namespace pickup
