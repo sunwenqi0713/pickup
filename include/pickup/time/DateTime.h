@@ -17,8 +17,8 @@ namespace time {
 class DateTime {
  public:
   // 构造方法
-  DateTime() noexcept : millisecondsSinceEpoch‌_(0) {}
-  explicit DateTime(int64_t millisecondsSinceEpoch) noexcept : millisecondsSinceEpoch‌_(millisecondsSinceEpoch) {}
+  DateTime() noexcept : millisecondsSinceEpoch_(0) {}
+  explicit DateTime(int64_t millisecondsSinceEpoch) noexcept : millisecondsSinceEpoch_(millisecondsSinceEpoch) {}
   DateTime(int year, int month, int day, int hours = 0, int minutes = 0, int seconds = 0, int milliseconds = 0) {
     std::tm tm = {};
     tm.tm_year = year - 1900;
@@ -37,7 +37,7 @@ class DateTime {
     // 将时间戳转换为毫秒数
     milliseconds = milliseconds < 0 ? 0 : milliseconds;
     // 计算自 epoch 以来的毫秒数，std::mktime 返回的是秒数，所以乘以 1000 转换为毫秒
-    millisecondsSinceEpoch‌_ = 1000 * (int64_t)time + milliseconds;
+    millisecondsSinceEpoch_ = 1000 * (int64_t)time + milliseconds;
   }
 
   DateTime(const DateTime&) noexcept = default;
@@ -45,38 +45,34 @@ class DateTime {
   ~DateTime() noexcept = default;
 
   DateTime& operator=(int64_t millisecondsSinceEpoch) noexcept {
-    millisecondsSinceEpoch‌_ = millisecondsSinceEpoch;
+    millisecondsSinceEpoch_ = millisecondsSinceEpoch;
     return *this;
   }
   DateTime& operator=(const DateTime&) noexcept = default;
   DateTime& operator=(DateTime&&) noexcept = default;
 
-  DateTime operator+(const TimeSpan& other) const noexcept {
-    return DateTime(millisecondsSinceEpoch‌_ + other.total());
-  }
-  DateTime operator-(const TimeSpan& other) const noexcept {
-    return DateTime(millisecondsSinceEpoch‌_ - other.total());
-  }
+  DateTime operator+(const TimeSpan& other) const noexcept { return DateTime(millisecondsSinceEpoch_ + other.total()); }
+  DateTime operator-(const TimeSpan& other) const noexcept { return DateTime(millisecondsSinceEpoch_ - other.total()); }
   DateTime operator+(const DateTime& other) const noexcept {
-    return DateTime(millisecondsSinceEpoch‌_ + other.millisecondsSinceEpoch‌_);
+    return DateTime(millisecondsSinceEpoch_ + other.millisecondsSinceEpoch_);
   }
   DateTime operator-(const DateTime& other) const noexcept {
-    return DateTime(millisecondsSinceEpoch‌_ - other.millisecondsSinceEpoch‌_);
+    return DateTime(millisecondsSinceEpoch_ - other.millisecondsSinceEpoch_);
   }
   DateTime& operator+=(DateTime& other) noexcept {
-    millisecondsSinceEpoch‌_ += other.millisecondsSinceEpoch‌_;
+    millisecondsSinceEpoch_ += other.millisecondsSinceEpoch_;
     return *this;
   }
   DateTime& operator-=(DateTime& other) noexcept {
-    millisecondsSinceEpoch‌_ -= other.millisecondsSinceEpoch‌_;
+    millisecondsSinceEpoch_ -= other.millisecondsSinceEpoch_;
     return *this;
   }
   DateTime& operator+=(TimeSpan& other) noexcept {
-    millisecondsSinceEpoch‌_ += other.total();
+    millisecondsSinceEpoch_ += other.total();
     return *this;
   }
   DateTime& operator-=(TimeSpan& other) noexcept {
-    millisecondsSinceEpoch‌_ -= other.total();
+    millisecondsSinceEpoch_ -= other.total();
     return *this;
   }
 
@@ -97,48 +93,72 @@ class DateTime {
   int hours() const { return getLocalTm(&std::tm::tm_hour); }
   int minutes() const { return getLocalTm(&std::tm::tm_min); }
   int seconds() const { return getLocalTm(&std::tm::tm_sec); }
-  int milliseconds() const { return millisecondsSinceEpoch‌_ % 1000; }
+  int milliseconds() const { return millisecondsSinceEpoch_ % 1000; }
   int dayOfWeek() const { return getLocalTm(&std::tm::tm_wday); }
   int dayOfYear() const { return getLocalTm(&std::tm::tm_yday); }
   bool isLeapYear() { return isLeapYear(year()); }
 
   // 比较运算符
   bool operator==(const DateTime& other) const noexcept {
-    return millisecondsSinceEpoch‌_ == other.millisecondsSinceEpoch‌_;
+    return millisecondsSinceEpoch_ == other.millisecondsSinceEpoch_;
   }
   bool operator!=(const DateTime& other) const noexcept {
-    return millisecondsSinceEpoch‌_ != other.millisecondsSinceEpoch‌_;
+    return millisecondsSinceEpoch_ != other.millisecondsSinceEpoch_;
   }
   bool operator<(const DateTime& other) const noexcept {
-    return millisecondsSinceEpoch‌_ < other.millisecondsSinceEpoch‌_;
+    return millisecondsSinceEpoch_ < other.millisecondsSinceEpoch_;
   }
   bool operator>(const DateTime& other) const noexcept {
-    return millisecondsSinceEpoch‌_ > other.millisecondsSinceEpoch‌_;
+    return millisecondsSinceEpoch_ > other.millisecondsSinceEpoch_;
   }
   bool operator<=(const DateTime& other) const noexcept {
-    return millisecondsSinceEpoch‌_ <= other.millisecondsSinceEpoch‌_;
+    return millisecondsSinceEpoch_ <= other.millisecondsSinceEpoch_;
   }
   bool operator>=(const DateTime& other) const noexcept {
-    return millisecondsSinceEpoch‌_ >= other.millisecondsSinceEpoch‌_;
+    return millisecondsSinceEpoch_ >= other.millisecondsSinceEpoch_;
   }
 
   // 格式化输出
-  std::string format(const std::string& format = "%Y-%m-%d %H:%M:%S") const {
-    std::tm tm = millisToLocal(millisecondsSinceEpoch‌_);
-
-    char buffer[256];
-    std::strftime(buffer, sizeof(buffer), format.c_str(), &tm);
-    std::string result(buffer);
-
-    // 处理毫秒 %f（3位）
-    size_t pos;
-    while ((pos = result.find("%f")) != std::string::npos) {
-      std::stringstream ss;
-      ss << std::setw(3) << std::setfill('0') << milliseconds();
-      result.replace(pos, 3, ss.str());
+  std::string format(const std::string& fmt = "%Y-%m-%d %H:%M:%S") const {
+    std::ostringstream oss;
+    const size_t len = fmt.size();
+    for (size_t i = 0; i < len; ++i) {
+      if (fmt[i] == '%' && i + 1 < len) {
+        // 处理占位符
+        switch (fmt[++i]) {
+          case 'Y':
+            oss << std::setw(4) << std::setfill('0') << year();
+            break;
+          case 'm':
+            oss << std::setw(2) << std::setfill('0') << month();
+            break;
+          case 'd':
+            oss << std::setw(2) << std::setfill('0') << day();
+            break;
+          case 'H':
+            oss << std::setw(2) << std::setfill('0') << hours();
+            break;
+          case 'M':
+            oss << std::setw(2) << std::setfill('0') << minutes();
+            break;
+          case 'S':
+            oss << std::setw(2) << std::setfill('0') << seconds();
+            break;
+          case 'f':
+            oss << std::setw(3) << std::setfill('0') << milliseconds();
+            break;
+          case '%':
+            oss << '%';
+            break;  // 转义 %
+          default:
+            throw std::invalid_argument("Invalid format specifier: %" + std::string(1, fmt[i]));
+        }
+      } else {
+        oss << fmt[i];
+      }
     }
 
-    return result;
+    return oss.str();
   }
 
   static bool isLeapYear(int year) { return (year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0); }
@@ -151,38 +171,24 @@ class DateTime {
   }
 
  private:
-  static void zerostruct(std::tm& tm) {
-    tm.tm_sec = 0;
-    tm.tm_min = 0;
-    tm.tm_hour = 0;
-    tm.tm_mday = 1;
-    tm.tm_mon = 0;
-    tm.tm_year = 0;
-    tm.tm_wday = 0;
-    tm.tm_yday = 0;
-    tm.tm_isdst = -1;
-  }
-
   static std::tm millisToLocal(int64_t millis) noexcept {
-#ifdef PICKUP_WINDOWS
-    std::tm result;
-    millis /= 1000;
-
-    if (_localtime64_s(&result, &millis) != 0) zerostruct(result);
-
-    return result;
+    std::tm result = {};  // 默认初始化为0
+#ifdef PICKUP_WIN_OS
+    __time64_t sec = millis / 1000;
+    if (_localtime64_s(&result, &sec) != 0) {
+      memset(&result, 0, sizeof(result));  // 失败时清空
+    }
 #else
-    std::tm result;
-    auto now = (time_t)(millis / 1000);
-
-    if (localtime_r(&now, &result) == nullptr) zerostruct(result);
-
-    return result;
+    time_t sec = static_cast<time_t>(millis / 1000);
+    if (localtime_r(&sec, &result) == nullptr) {
+      memset(&result, 0, sizeof(result));  // 失败时清空
+    }
 #endif
+    return result;
   }
 
   int getLocalTm(int std::tm::* member) const {
-    std::tm tm = millisToLocal(millisecondsSinceEpoch‌_);
+    std::tm tm = millisToLocal(millisecondsSinceEpoch_);
     return tm.*member;
   }
 
@@ -195,7 +201,7 @@ class DateTime {
   }
 
  private:
-  int64_t millisecondsSinceEpoch‌_;
+  int64_t millisecondsSinceEpoch_;
 };
 
 }  // namespace time
