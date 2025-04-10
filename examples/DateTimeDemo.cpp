@@ -11,8 +11,7 @@ void timespan_example() {
   TimeSpan ts2(duration);
 
   TimeSpan sum = ts1 + ts2;
-  std::cout << "Total hours: " << sum.totalHours() << std::endl;
-  std::cout << "Formatted: " << sum.format("%D days %H:%M:%S") << std::endl;
+  std::cout << "Total time: " << sum.total() << std::endl;
 
   if (ts1 > ts2) {
     std::cout << "ts1 is longer than ts2" << std::endl;
@@ -20,40 +19,25 @@ void timespan_example() {
 }
 
 void datetime_example() {
-  DateTime now = DateTime::now();
+  DateTime now = DateTime::currentTime();
   std::cout << "Current year: " << now.year() << std::endl;
   std::cout << "Current month: " << now.month() << std::endl;
   std::cout << "Current day: " << now.day() << std::endl;
-  std::cout << "Current hour: " << now.hour() << std::endl;
-  std::cout << "Current minute: " << now.minute() << std::endl;
-  std::cout << "Current second: " << now.second() << std::endl;
-  std::cout << "Current time: " << now.format("%Y-%m-%d %H:%M:%S") << std::endl;
+  std::cout << "Current hour: " << now.hours() << std::endl;
+  std::cout << "Current minute: " << now.minutes() << std::endl;
+  std::cout << "Current second: " << now.seconds() << std::endl;
+  std::cout << "Current time: " << now.format("%Y-%m-%d %H:%M:%S.%f") << std::endl;
 
   DateTime dt(2023, 12, 25, 15, 30);
   std::cout << "Christmas: " << dt.format("%Y/%m/%d %H:%M") << std::endl;
-
-  TimeSpan diff = now - dt;
-  std::cout << "Difference: " << diff.hours() << " hours" << std::endl;
-}
-
-void combie_example() {
-  DateTime dt1(2023, 12, 25);  // 圣诞节
-  DateTime dt2 = DateTime::now();
-
-  TimeSpan ts = dt2 - dt1;
-  std::cout << "Days since Christmas: " << ts.days() << std::endl;
-
-  DateTime future = dt2 + TimeSpan(30, 0, 0, 0);  // 加30天
-  std::cout << "30 days later: " << future.format("%Y-%m-%d") << std::endl;
-
-  TimeSpan ts2(3, 12, 30, 45);  // 3天12小时30分45秒
-  dt2 += ts2;
-  std::cout << "Updated time: " << dt2.format("%H:%M:%S") << std::endl;
+  std::cout << "Is leap year: " << (dt.isLeapYear() ? "Yes" : "No") << std::endl;
+  std::cout << "Day of week: " << dt.dayOfWeek() << std::endl;
+  std::cout << "Day of year: " << dt.dayOfYear() << std::endl;
+  std::cout << "Milliseconds since epoch: " << dt.currentTimeMillis() << std::endl;
 }
 
 int main() {
   timespan_example();
   datetime_example();
-  combie_example();
   return 0;
 }

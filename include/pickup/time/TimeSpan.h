@@ -18,7 +18,12 @@ class TimeSpan {
   // Initialize timespan with a given std::chrono duration
   template <class Rep, class Period>
   explicit TimeSpan(const std::chrono::duration<Rep, Period>& duration) noexcept
-      : _duration(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count()) {}
+      : duration_(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count()) {}
+  // Initialize timespan with time components
+  TimeSpan(int64_t days, int64_t hours, int64_t minutes, int64_t seconds, int64_t milliseconds = 0,
+           int64_t microseconds = 0, int64_t nanoseconds = 0) noexcept
+      : duration_((days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60 + seconds) * 1000000000ll +
+                  milliseconds * 1000000ll + microseconds * 1000ll + nanoseconds) {}
   TimeSpan(const TimeSpan&) noexcept = default;
   TimeSpan(TimeSpan&&) noexcept = default;
   ~TimeSpan() noexcept = default;
@@ -74,13 +79,6 @@ class TimeSpan {
 
   // 获取总时间量
   int64_t total() const noexcept { return duration_; }
-
-  // create the timespan based on the given time components
-  static TimeSpan create(int64_t days, int64_t hours, int64_t minutes, int64_t seconds, int64_t milliseconds = 0,
-                         int64_t microseconds = 0, int64_t nanoseconds = 0) noexcept {
-    return TimeSpan((days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60 + seconds) * 1000000000ll +
-                    milliseconds * 1000000ll + microseconds * 1000ll + nanoseconds);
-  }
 
   // get zero timespan
   static TimeSpan zero() noexcept { return TimeSpan(0); }
