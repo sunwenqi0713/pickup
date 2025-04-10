@@ -2,6 +2,7 @@
 
 #include <array>
 #include <chrono>
+#include <cstring>  // For memset
 #include <ctime>
 #include <iomanip>
 #include <sstream>
