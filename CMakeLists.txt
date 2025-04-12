@@ -29,6 +29,9 @@ list(APPEND PROJECT_SOURCES
     src/Application.cpp
     src/Result.cpp
     src/hex.cpp
+    src/Timestamp.cpp
+    src/Timespan.cpp
+    src/DateTime.cpp
 )
 
 if (PICKUP_STATIC_LIBS)
