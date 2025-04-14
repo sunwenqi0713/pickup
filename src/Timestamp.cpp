@@ -7,6 +7,7 @@
 #include <windows.h>  // For GetSystemTimeAsFileTime
 #else
 #include <sys/time.h>  // For gettimeofday
+#include <time.h>      // For clock_gettime
 #endif
 
 namespace pickup {
@@ -34,6 +35,11 @@ Timestamp& Timestamp::operator=(TimeVal tv) {
 
 void Timestamp::swap(Timestamp& timestamp) { std::swap(tv_, timestamp.tv_); }
 
+// Windows和Unix系统使用不同的时间起点（纪元），Windows使用1601年1月1日作为起点，而Unix使用1970年1月1日作为起点。
+// 因此在Windows上需要减去116444736000000000个100ns单位的时间差，这个差值是从1601年到1970年的总时间（以100ns为单位）。
+// 1601年到1970年之间有 369年 的差距，其中有89个闰年（1601-1970），所以总天数为 369 * 365 + 89 = 134774 天。
+// 134774天 * 24小时/天 * 60分钟/小时 * 60秒/分钟 * 10000000微秒/秒 = 116444736000000000微秒。
+// 这个差值是以100ns为单位的，所以需要除以10来得到微秒级别的时间差。
 void Timestamp::update() {
 #if defined(_WIN32) || defined(_WIN64)
   FILETIME ft;
@@ -42,7 +48,13 @@ void Timestamp::update() {
 #else
   GetSystemTimeAsFileTime(&ft);
 #endif
-  tv_ = ((int64_t)ft.dwHighDateTime << 32 | ft.dwLowDateTime) / 10;  // 转换为微秒
+  ULARGE_INTEGER uli;
+  uli.LowPart = ft.dwLowDateTime;
+  uli.HighPart = ft.dwHighDateTime;
+  // 转换为Unix纪元时间（从1601-01-01到1970-01-01的100ns间隔数）
+  const uint64_t UNIX_EPOCH = 116444736000000000ULL;
+  // FILETIME是以100纳秒为单位的，所以需要除以10来得到微秒
+  tv_ = (uli.QuadPart - UNIX_EPOCH) / 10;
 #else
   timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) throw std::runtime_error("Cannot get current time!");

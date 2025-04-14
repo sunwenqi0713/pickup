@@ -93,7 +93,6 @@ void DateTime::swap(DateTime& datetime) {
 DateTime DateTime::now() {
   Timestamp now;
   std::tm tm = DateTime::millisToLocal(now.epochMilliseconds());
-  printf("tm: %d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
   int ms = static_cast<int>(now.epochMilliseconds() % 1000);
   int us = static_cast<int>(now.epochMicroseconds() % 1000);
   return DateTime(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms, us);
@@ -102,22 +101,31 @@ DateTime DateTime::now() {
 DateTime DateTime::nowUTC() {
   Timestamp now;
   std::tm tm = DateTime::millisToUTC(now.epochMilliseconds());
-  printf("tm: %d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
   int ms = static_cast<int>(now.epochMilliseconds() % 1000);
   int us = static_cast<int>(now.epochMicroseconds() % 1000);
   return DateTime(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms, us);
 }
 
 Timestamp::TimeVal DateTime::timestamp() const {
-  // 将 DateTime 转换为时间戳（微秒级）
-  Timestamp::TimeVal timestamp = static_cast<Timestamp::TimeVal>(year_) * Timespan::DAYS * 365 +
-                                 static_cast<Timestamp::TimeVal>(month_) * Timespan::DAYS * daysOfMonth(year_, month_) +
-                                 static_cast<Timestamp::TimeVal>(day_) * Timespan::DAYS +
-                                 static_cast<Timestamp::TimeVal>(hour_) * Timespan::HOURS +
-                                 static_cast<Timestamp::TimeVal>(minute_) * Timespan::MINUTES +
-                                 static_cast<Timestamp::TimeVal>(second_) * Timespan::SECONDS +
-                                 static_cast<Timestamp::TimeVal>(millisecond_) * Timespan::MILLISECONDS + microsecond_;
-  return timestamp;
+  // 计算总天数
+  uint64_t totalDays = 0;
+  for (int y = 1970; y < year_; ++y) {
+    totalDays += isLeapYear(y) ? 366 : 365;
+  }
+  for (int m = 1; m < month_; ++m) {
+    totalDays += daysOfMonth(year_, m);
+  }
+  totalDays += day_;
+  // 计算总小时数
+  uint64_t totalHours = totalDays * 24 + hour_;
+  // 计算总分钟数
+  uint64_t totalMinutes = totalHours * 60 + minute_;
+  // 计算总秒数
+  uint64_t totalSeconds = totalMinutes * 60 + second_;
+  // 计算总微秒数
+  uint64_t totalMicroseconds = totalSeconds * 1000000 + millisecond_ * 1000 + microsecond_;
+  // 返回时间戳（微秒）
+  return totalMicroseconds;
 }
 
 int DateTime::year() const { return year_; }

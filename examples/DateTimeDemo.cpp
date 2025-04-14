@@ -45,16 +45,17 @@ void timespan_example() {
 
 void datetime_example() {
   // 创建 DateTime 对象
-  DateTime dt(2021, 8, 1, 12, 30, 45);  // 2021-08-01 12:30:45
+  DateTime dt(2025, 4, 14, 10, 1, 17);  // 2021-08-01 12:30:45
   std::cout << "DateTime: " << dt.year() << "-" << dt.month() << "-" << dt.day() << " " << dt.hour() << ":"
             << dt.minute() << ":" << dt.second() << std::endl;
   // 转换为 UTC 时间戳
-  Timestamp::TimeVal ts = dt.timestamp();
-  std::cout << "Timestamp from DateTime: " << ts << " seconds since epoch" << std::endl;
+  std::cout << "Timestamp from DateTime: " << dt.timestamp() << " microsecodes since epoch" << std::endl;
   // 获取当前时间
   DateTime now = DateTime::now();
   std::cout << "Current DateTime: " << now.year() << "-" << now.month() << "-" << now.day() << " " << now.hour() << ":"
             << now.minute() << ":" << now.second() << std::endl;
+  std::cout << "Timestamp now from DateTime: " << now.timestamp() << " microsecodes since epoch"
+            << std::endl;
   // 获取当前 UTC 时间
   DateTime utc_now = DateTime::nowUTC();
   std::cout << "Current UTC DateTime: " << utc_now.year() << "-" << utc_now.month() << "-" << utc_now.day() << " "

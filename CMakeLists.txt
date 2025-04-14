@@ -35,9 +35,9 @@ list(APPEND PROJECT_SOURCES
 )
 
 if (PICKUP_STATIC_LIBS)
-    add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES})
-else()
     add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
+else()
+    add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES})
 endif()
 
 ######################################################
