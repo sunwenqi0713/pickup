@@ -107,25 +107,16 @@ DateTime DateTime::nowUTC() {
 }
 
 Timestamp::TimeVal DateTime::timestamp() const {
-  // 计算总天数
-  uint64_t totalDays = 0;
-  for (int y = 1970; y < year_; ++y) {
-    totalDays += isLeapYear(y) ? 366 : 365;
+  // 验证时间有效性
+  if (!isValid(year_, month_, day_, hour_, minute_, second_, millisecond_, microsecond_)) {
+    throw std::invalid_argument("Invalid DateTime components");
   }
-  for (int m = 1; m < month_; ++m) {
-    totalDays += daysOfMonth(year_, m);
-  }
-  totalDays += day_;
-  // 计算总小时数
-  uint64_t totalHours = totalDays * 24 + hour_;
-  // 计算总分钟数
-  uint64_t totalMinutes = totalHours * 60 + minute_;
-  // 计算总秒数
-  uint64_t totalSeconds = totalMinutes * 60 + second_;
+
+  // 计算从1970年1月1日到当前日期的总天数
+  int days = daysSinceEpoch(year_) + dayOfYear();
   // 计算总微秒数
-  uint64_t totalMicroseconds = totalSeconds * 1000000 + millisecond_ * 1000 + microsecond_;
-  // 返回时间戳（微秒）
-  return totalMicroseconds;
+  Timespan span(days, hour_, minute_, second_, millisecond_ * 1000 + microsecond_);
+  return span.totalMicroseconds();  // 返回总微秒数
 }
 
 int DateTime::year() const { return year_; }
@@ -190,6 +181,36 @@ bool DateTime::operator<(const DateTime& dateTime) const { return this->timestam
 bool DateTime::operator<=(const DateTime& dateTime) const { return this->timestamp() <= dateTime.timestamp(); }
 bool DateTime::operator>(const DateTime& dateTime) const { return this->timestamp() > dateTime.timestamp(); }
 bool DateTime::operator>=(const DateTime& dateTime) const { return this->timestamp() >= dateTime.timestamp(); }
+
+DateTime DateTime::operator+(const Timespan& span) const {
+  Timestamp::TimeVal totalMicroseconds = this->timestamp() + span.totalMicroseconds();
+  // 使用 UTC 时间戳构造新对象，再转换为本地时间（保持与原始对象一致的时区）
+  return DateTime(totalMicroseconds, true);
+}
+
+DateTime DateTime::operator-(const Timespan& span) const {
+  Timestamp::TimeVal totalMicroseconds = this->timestamp() - span.totalMicroseconds();
+  // 使用 UTC 时间戳构造新对象，再转换为本地时间（保持与原始对象一致的时区）
+  return DateTime(totalMicroseconds, true);
+}
+
+Timespan DateTime::operator-(const DateTime& dateTime) const {
+  return Timespan(this->timestamp() - dateTime.timestamp());
+}
+
+DateTime& DateTime::operator+=(const Timespan& span) {
+  *this = *this + span;  // 使用 operator+ 进行加法运算
+  return *this;
+}
+
+DateTime& DateTime::operator-=(const Timespan& span) {
+  *this = *this - span;  // 使用 operator- 进行减法运算
+  return *this;
+}
+
+void DateTime::makeUTC(int tzd) { operator-=(Timespan(((Timestamp::TimeDiff)tzd) * Timespan::SECONDS)); }
+
+void DateTime::makeLocal(int tzd) { operator+=(Timespan(((Timestamp::TimeDiff)tzd) * Timespan::SECONDS)); }
 
 bool DateTime::isLeapYear(int year) { return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0); }
 
@@ -260,6 +281,18 @@ std::tm DateTime::millisToUTC(Timestamp::TimeVal millis) noexcept {
   }
 #endif
   return result;
+}
+
+int DateTime::computeDaysFrom1AD(int year) const {
+  if (year < 1) return 0;  // 无效输入
+  int y = year - 1;
+  // 总天数 = 平年天数 + 闰年修正。每 4 年加 1 天（闰年），但每 100 年减 1 天，每 400 年加 1 天
+  return 365 * y + y / 4 - y / 100 + y / 400;
+}
+
+int DateTime::daysSinceEpoch(int year) const {
+  // 计算从1970年1月1日到指定年份的天数
+  return computeDaysFrom1AD(year) - computeDaysFrom1AD(1970);
 }
 
 }  // namespace time

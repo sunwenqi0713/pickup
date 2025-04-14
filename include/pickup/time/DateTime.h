@@ -204,6 +204,19 @@ class DateTime {
   bool operator>(const DateTime& dateTime) const;
   bool operator>=(const DateTime& dateTime) const;
 
+  // 时间运算操作符
+  DateTime operator+(const Timespan& span) const;
+  DateTime operator-(const Timespan& span) const;
+  Timespan operator-(const DateTime& dateTime) const;
+  DateTime& operator+=(const Timespan& span);
+  DateTime& operator-=(const Timespan& span);
+
+  // Converts a local time into UTC, by applying the given time zone differential.
+  void makeUTC(int tzd);
+
+  // Converts a UTC time into a local time, by applying the given time zone differential.
+  void makeLocal(int tzd);
+
   /**
    * @brief 判断是否为闰年
    * @param year 年份（0-9999）
@@ -223,6 +236,23 @@ class DateTime {
    */
   static bool isValid(int year, int month, int day, int hour = 0, int minute = 0, int second = 0, int millisecond = 0,
                       int microsecond = 0);
+
+ private:
+  /**
+   * @brief 计算从公元1年到指定年份的天数
+   *
+   * @param year
+   * @return int
+   */
+  int computeDaysFrom1AD(int year) const;
+
+  /**
+   * @brief 计算从公元1970年到指定年份的天数
+   *
+   * @param year
+   * @return int
+   */
+  int daysSinceEpoch(int year) const;
 
   /**
    * @brief 将时间戳转换为本地时间

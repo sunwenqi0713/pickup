@@ -54,8 +54,7 @@ void datetime_example() {
   DateTime now = DateTime::now();
   std::cout << "Current DateTime: " << now.year() << "-" << now.month() << "-" << now.day() << " " << now.hour() << ":"
             << now.minute() << ":" << now.second() << std::endl;
-  std::cout << "Timestamp now from DateTime: " << now.timestamp() << " microsecodes since epoch"
-            << std::endl;
+  std::cout << "Timestamp now from DateTime: " << now.timestamp() << " microsecodes since epoch" << std::endl;
   // 获取当前 UTC 时间
   DateTime utc_now = DateTime::nowUTC();
   std::cout << "Current UTC DateTime: " << utc_now.year() << "-" << utc_now.month() << "-" << utc_now.day() << " "
