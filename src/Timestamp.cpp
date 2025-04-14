@@ -57,7 +57,7 @@ void Timestamp::update() {
   tv_ = (uli.QuadPart - UNIX_EPOCH) / 10;
 #else
   timespec ts;
-  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) throw std::runtime_error("Cannot get current time!");
+  if (clock_gettime(CLOCK_REALTIME, &ts) != 0) throw std::runtime_error("Cannot get current time!");
   tv_ = static_cast<TimeVal>(ts.tv_sec) * 1000000 + static_cast<TimeVal>(ts.tv_nsec) / 1000;
 #endif
 }
