@@ -106,6 +106,7 @@ DateTime DateTime::nowUTC() {
   return DateTime(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms, us);
 }
 
+// TODO: 需要实现时区转换
 Timestamp::TimeVal DateTime::timestamp() const {
   // 验证时间有效性
   if (!isValid(year_, month_, day_, hour_, minute_, second_, millisecond_, microsecond_)) {
@@ -113,9 +114,10 @@ Timestamp::TimeVal DateTime::timestamp() const {
   }
 
   // 计算从1970年1月1日到当前日期的总天数
-  int days = daysSinceEpoch(year_) + dayOfYear();
+  // 总天数 = 到年初的天数 + 当年已过去的天数（其中 dayOfYear() - 1 即为“已过去的天数”）
+  int days = daysSinceEpoch(year_) + dayOfYear() - 1;
   // 计算总微秒数
-  Timespan span(days, hour_, minute_, second_, millisecond_ * 1000 + microsecond_);
+  Timespan span(days, hour_ - 8, minute_, second_, millisecond_ * 1000 + microsecond_);
   return span.totalMicroseconds();  // 返回总微秒数
 }
 
