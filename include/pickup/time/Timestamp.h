@@ -54,6 +54,11 @@ class Timestamp {
   Timestamp& operator-=(TimeDiff d);
 
   /**
+   * @return  自 Unix 纪元以来的秒数
+   * @note 该时间戳的精度为秒级
+   */
+  std::time_t epochTime() const;
+  /**
    * @return  自 Unix 纪元以来的毫秒数
    * @note 该时间戳的精度为毫秒级
    */

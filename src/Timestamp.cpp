@@ -4,10 +4,10 @@
 #include <utility>    // For std::swap
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>  // For GetSystemTimeAsFileTime
+#include <windows.h>
 #else
-#include <sys/time.h>  // For gettimeofday
-#include <time.h>      // For clock_gettime
+#include <sys/time.h>
+#include <time.h>
 #endif
 
 namespace pickup {
@@ -81,6 +81,8 @@ Timestamp& Timestamp::operator-=(Timestamp::TimeDiff d) {
   tv_ -= d;
   return *this;
 }
+
+std::time_t Timestamp::epochTime() const { return static_cast<std::time_t>(tv_ / 1000000); }
 
 Timestamp::TimeVal Timestamp::epochMilliseconds() const { return tv_ / 1000; }
 
