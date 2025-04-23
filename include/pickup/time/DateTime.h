@@ -228,7 +228,7 @@ class DateTime {
    * @param year  年份（0-9999）
    * @param month 月份（1-12）
    */
-  static int daysOfMonth(int year, int month);
+  static int daysInMonth(int year, int month);
 
   /**
    * @brief 验证日期时间是否有效

@@ -148,7 +148,7 @@ bool DateTime::isPM() const {
 int DateTime::dayOfYear() const {
   int doy = 0;
   for (int m = 1; m < month_; ++m) {
-    doy += daysOfMonth(year_, m);
+    doy += daysInMonth(year_, m);
   }
   doy += day_;
   return doy;
@@ -216,17 +216,16 @@ void DateTime::makeLocal(int tzd) { operator+=(Timespan(((Timestamp::TimeDiff)tz
 
 bool DateTime::isLeapYear(int year) { return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0); }
 
-int DateTime::daysOfMonth(int year, int month) {
-  assert(year >= 0 && year <= 9999);  // 年份范围检查
+int DateTime::daysInMonth(int year, int month) {
   assert(month >= 1 && month <= 12);  // 月份范围检查
   // 每个月的天数（非闰年）
-  const int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  const int daysInMonthTable[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
   // 判断是否为闰年
   if (month == 2 && isLeapYear(year)) {
     return 29;
   } else {
-    return daysInMonth[month - 1];
+    return daysInMonthTable[month];
   }
 }
 
@@ -241,7 +240,7 @@ bool DateTime::isValid(int year, int month, int day, int hour, int minute, int s
     return false;
   }
   // 检查日期范围
-  if (day < 1 || day > daysOfMonth(year, month)) {
+  if (day < 1 || day > daysInMonth(year, month)) {
     return false;
   }
   // 检查时间范围
