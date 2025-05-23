@@ -26,6 +26,9 @@ bool Application::init(int argc, char** argv) {
     should_exit_.store(true);
   });
 
+  // 初始化日志系统
+  initializingLogger();
+
   // 解析命令行参数
   parseArguments(argc, argv);
 
@@ -70,7 +73,7 @@ void Application::addSubsystem(Subsystem::Ptr pSubsystem) { subsystems_.emplace_
 
 void Application::initialize() {
   for (auto& pSub : subsystems_) {
-    // std::cout << "Initializing subsystem: " << pSub->name() << std::endl;
+    std::cout << "Initializing subsystem: " << pSub->name() << std::endl;
     pSub->initialize();
   }
   initialized_ = true;
@@ -79,7 +82,7 @@ void Application::initialize() {
 void Application::uninitialize() {
   if (initialized_) {
     for (auto& pSub : subsystems_) {
-      // std::cout << "Uninitializing subsystem: " << pSub->name() << std::endl;
+      std::cout << "Uninitializing subsystem: " << pSub->name() << std::endl;
       pSub->uninitialize();
     }
     initialized_ = false;
@@ -88,7 +91,7 @@ void Application::uninitialize() {
 
 void Application::reinitialize() {
   for (auto& pSub : subsystems_) {
-    // std::cout << "Re-initializing subsystem: " << pSub->name() << std::endl;
+    std::cout << "Re-initializing subsystem: " << pSub->name() << std::endl;
     pSub->reinitialize();
   }
 }
