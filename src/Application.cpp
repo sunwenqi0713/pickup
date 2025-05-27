@@ -26,37 +26,38 @@ bool Application::init(int argc, char** argv) {
     should_exit_.store(true);
   });
 
-  // 初始化日志系统
-  initializingLogger();
-
   // 解析命令行参数
   parseArguments(argc, argv);
 
-  // 加载配置文件
-  loadConfiguration("config.json");
+  if (!preInitialize()) {
+    std::cerr << "Pre-initialization failed." << std::endl;
+    return false;
+  }
 
+  if (!initialize()) {
+    std::cerr << "Initialization failed." << std::endl;
+    return false;
+  }
+
+  if (!postInitialize()) {
+    std::cerr << "Post-initialization failed." << std::endl;
+    return false;
+  }
+
+  initialized_ = true;
   return true;
 }
 
 // TODO: run in loop
 int Application::run() {
-  if (!onStartUp()) {
-    std::cerr << "Failed to start application" << std::endl;
-    return 1;
+  if (!initialized_) {
+    std::cerr << "Application not initialized." << std::endl;
+    return -1;
   }
 
-  try {
-    initialize();
-    main(args_);
-    uninitialize();
-  } catch (std::exception& exc) {
-    std::cerr << exc.what() << std::endl;
-  } catch (...) {
-    std::cerr << "system exception" << std::endl;
-  }
-
-  onCleanUp();
-  return 0;
+  int ret = main(args_);
+  shutdown();
+  return ret;
 }
 
 int Application::main(const ArgVec& args) {
@@ -71,28 +72,49 @@ int Application::main(const ArgVec& args) {
 
 void Application::addSubsystem(Subsystem::Ptr pSubsystem) { subsystems_.emplace_back(pSubsystem); }
 
-void Application::initialize() {
+bool Application::preInitialize() {
+  // 预初始化阶段，加载配置文件和初始化日志系统
+  if (!loadConfiguration("config.yaml")) {
+    std::cerr << "Failed to load configuration." << std::endl;
+    return false;
+  }
+  std::cout << "Configuration loaded successfully." << std::endl;
+
+  if (!initializingLogger()) {
+    std::cerr << "Failed to initialize logger." << std::endl;
+    return false;
+  }
+  std::cout << "Logger initialized successfully." << std::endl;
+
+  return true;
+}
+
+bool Application::postInitialize() {
   for (auto& pSub : subsystems_) {
     std::cout << "Initializing subsystem: " << pSub->name() << std::endl;
-    pSub->initialize();
-  }
-  initialized_ = true;
-}
-
-void Application::uninitialize() {
-  if (initialized_) {
-    for (auto& pSub : subsystems_) {
-      std::cout << "Uninitializing subsystem: " << pSub->name() << std::endl;
-      pSub->uninitialize();
+    if (!pSub->initialize()) {
+      std::cerr << "Failed to initialize subsystem: " << pSub->name() << std::endl;
+      return false;
     }
-    initialized_ = false;
+    std::cout << "Subsystem initialized: " << pSub->name() << std::endl;
   }
+
+  return true;
 }
 
-void Application::reinitialize() {
-  for (auto& pSub : subsystems_) {
-    std::cout << "Re-initializing subsystem: " << pSub->name() << std::endl;
-    pSub->reinitialize();
+void Application::shutdown() {
+  for (auto it = subsystems_.rbegin(); it != subsystems_.rend(); ++it) {
+    auto& pSub = *it;
+    std::cout << "Stopping subsystem: " << pSub->name() << std::endl;
+    pSub->stop();
+    std::cout << "Subsystem stopped: " << pSub->name() << std::endl;
+  }
+
+  for (auto it = subsystems_.rbegin(); it != subsystems_.rend(); ++it) {
+    auto& pSub = *it;
+    std::cout << "Uninitializing subsystem: " << pSub->name() << std::endl;
+    pSub->uninitialize();
+    std::cout << "Subsystem uninitialized: " << pSub->name() << std::endl;
   }
 }
 
@@ -104,9 +126,9 @@ void Application::parseArguments(int argc, char** argv) {
   }
 }
 
-void Application::loadConfiguration(const std::string& path) {}
+bool Application::initializingLogger() { return true; }
 
-void Application::initializingLogger() {}
+bool Application::loadConfiguration(const std::string& path) { return true; }
 
 std::chrono::steady_clock::duration Application::uptime() const {
   auto uptime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time_);

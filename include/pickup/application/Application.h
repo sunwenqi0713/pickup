@@ -17,14 +17,15 @@ class Application {
   using SubsystemVec = std::vector<Subsystem::Ptr>;
 
   Application();
-  ~Application();
+  virtual ~Application();
 
   bool init(int argc, char** argv);
-  virtual int run();
+  int run();
 
-  virtual bool onStartUp() = 0;
-  virtual void onCleanUp() = 0;
   virtual int main(const ArgVec& args);
+
+  bool startup();
+  void shutdown();
 
   /**
    * @brief 添加子系统
@@ -43,21 +44,20 @@ class Application {
     std::cout << "Subsystem not found: " << typeid(SubsystemType).name() << std::endl;
   }
 
-  void parseArguments(int argc, char** argv);
-  void loadConfiguration(const std::string& path);
-  void initializingLogger();
-
   std::chrono::steady_clock::duration uptime() const;
 
  protected:
-  void initialize();
-  void uninitialize();
-  void reinitialize();
+  virtual bool initialize() = 0;
+  bool preInitialize();
+  bool postInitialize();
+  void parseArguments(int argc, char** argv);
+  bool initializingLogger();
+  bool loadConfiguration(const std::string& path);
 
  private:
   ArgVec args_;
   SubsystemVec subsystems_;
-  bool initialized_ = false;
+  bool initialized_{false};
   std::atomic_bool should_exit_{false};
   std::chrono::steady_clock::time_point start_time_;
 };

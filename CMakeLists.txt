@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #---- project configuration ----
 option(PICKUP_STATIC_LIBS "Build shared libraries" ON)
 option(PICKUP_UNIT_TESTS "Build the unit tests" OFF)
-option(PICKUP_EXAMPLES "Build tutorials and examples" ON)
+option(PICKUP_EXAMPLES "Build tutorials and examples" OFF)
 
 set(PICKUP_LIBRARY ${PROJECT_NAME})
 
@@ -25,7 +25,6 @@ list(APPEND PROJECT_SOURCES
     src/Thread.cpp
     src/ThreadPool.cpp
     src/Event.cpp
-    src/Subsystem.cpp
     src/Application.cpp
     src/Result.cpp
     src/hex.cpp

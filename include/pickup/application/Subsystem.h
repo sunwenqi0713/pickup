@@ -13,25 +13,19 @@ class Subsystem {
  public:
   using Ptr = std::shared_ptr<Subsystem>;
 
-  Subsystem(std::string name = "");
-  virtual ~Subsystem();
+  Subsystem(std::string name = "") : name_(std::move(name)) {};
+  virtual ~Subsystem() = default;
 
   /**
    * @brief 初始化子系统
    */
-  virtual void initialize() = 0;
+  virtual bool initialize() = 0;
 
   /**
    * @brief 反初始化子系统
    */
   virtual void uninitialize() = 0;
 
-  /**
-   * @brief 重新初始化子系统
-   * The default implementation just calls uninitialize() followed by initialize(). Actual implementations might want to
-   * use a less radical and possibly more performant approach.
-   */
-  virtual void reinitialize();
   /**
    * @brief 启动子系统
    *
@@ -43,14 +37,6 @@ class Subsystem {
    *
    */
   virtual void stop() = 0;
-
-  /**
-   * @brief 子系统是否正在运行
-   *
-   * @return true
-   * @return false
-   */
-  virtual bool isRunning() const = 0;
 
   std::string name() const { return name_; }
 
