@@ -3,9 +3,22 @@
 namespace pickup {
 namespace codec {
 
+inline unsigned char fromHex(unsigned char x) {
+  if (x >= '0' && x <= '9') {
+    return x - '0';
+  }
+  if (x >= 'A' && x <= 'F') {
+    return x - 'A' + 10;
+  }
+  if (x >= 'a' && x <= 'f') {
+    return x - 'a' + 10;
+  }
+  return 0;
+}
+
 std::string url_encode(const std::string& value) {
   std::string result;
-  result.reserve(value.length());  // Reserve space for efficiency
+  result.reserve(value.length() * 3);  // Reserve space for efficiency
 
   const std::string hex_table = "0123456789ABCDEF";
   for (unsigned char ch : value) {
@@ -26,32 +39,18 @@ std::string url_decode(const std::string& value) {
   std::string result;
   result.reserve(value.length());  // Reserve space for efficiency
 
-  const std::string hex_table = "0123456789ABCDEF";
   for (size_t i = 0; i < value.length(); ++i) {
     char ch = value[i];
     if (ch == '%') {
-      // Check if there are enough characters for hex decoding
       if (i + 2 >= value.size()) {
-        result += '?';
+        result += '?';  // Incomplete escape sequence
         break;
       }
 
-      const char hi = value[i + 1];
-      const char lo = value[i + 2];
-
-      auto hi_iter = std::find(hex_table.begin(), hex_table.end(), toupper(hi));
-      auto lo_iter = std::find(hex_table.begin(), hex_table.end(), toupper(lo));
-
-      if (hi_iter == hex_table.end() || lo_iter == hex_table.end()) {
-        result += '?';
-        break;
-      }
-
-      int hiv = (int)(hi_iter - hex_table.begin());
-      int lov = (int)(lo_iter - hex_table.begin());
-
-      result += (char)((hiv << 4) + lov);  // Convert hex to character
-      i += 2;                              // Skip the next two characters
+      const char hi = fromHex(value[i + 1]);
+      const char lo = fromHex(value[i + 2]);
+      result += static_cast<char>((hi << 4) + lo);  // Convert hex to character
+      i += 2;                                       // Skip the next two characters
     } else if (ch == '+') {
       result += ' ';  // Convert '+' back to space
     } else {
