@@ -5,7 +5,7 @@
 #include <cstring>
 #include <type_traits>
 
-#include "pickup/utils/FlipBytes.hpp"
+#include "pickup/utils/ByteSwap.hpp"
 
 namespace pickup {
 namespace utils {
@@ -34,7 +34,7 @@ template <class T>
 inline constexpr T fromBigEndian(T value) noexcept {
   static_assert(std::is_arithmetic_v<T>, "Only arithmetic types are supported");
   if constexpr (kIsLittleEndian) {
-    return flipBytes(value);
+    return byteswap(value);
   }
   return value;
 }
@@ -47,7 +47,7 @@ template <class T>
 inline constexpr T fromLittleEndian(T value) noexcept {
   static_assert(std::is_arithmetic_v<T>, "Only arithmetic types are supported");
   if constexpr (!kIsLittleEndian) {
-    return flipBytes(value);
+    return byteswap(value);
   }
   return value;
 }
@@ -60,7 +60,7 @@ template <class T>
 inline constexpr T hostToNetwork(T value) noexcept {
   static_assert(std::is_arithmetic_v<T>, "Only arithmetic types are supported");
   if constexpr (kIsLittleEndian) {
-    return flipBytes(value);
+    return byteswap(value);
   }
   return value;
 }
@@ -73,7 +73,7 @@ template <class T>
 inline constexpr T networkToHost(T value) noexcept {
   static_assert(std::is_arithmetic_v<T>, "Only arithmetic types are supported");
   if constexpr (kIsLittleEndian) {
-    return flipBytes(value);
+    return byteswap(value);
   }
   return value;
 }

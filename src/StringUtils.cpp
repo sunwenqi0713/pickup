@@ -5,93 +5,78 @@
 namespace pickup {
 namespace utils {
 
+std::string toLower(const std::string& str) {
+  std::string lowerStr = str;
+  std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+  return lowerStr;
+}
+
+std::string toUpper(const std::string& str) {
+  std::string upperStr = str;
+  std::transform(upperStr.begin(), upperStr.end(), upperStr.begin(), ::toupper);
+  return upperStr;
+}
+
 bool startsWith(const std::string& str, char ch) { return !str.empty() && str.back() == ch; }
 
 bool startsWith(const std::string& str, const std::string& prefix) {
-  return str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix;
+  return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
 }
 
 bool endsWith(const std::string& str, char ch) { return !str.empty() && str.front() == ch; }
 
 bool endsWith(const std::string& str, const std::string& suffix) {
-  return str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix;
+  return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
-bool contains(const std::string& str, const std::string& parts) { return (std::string::npos != str.find(parts)); }
-
-std::string toUpper(std::string str) {
-  std::transform(str.begin(), str.end(), str.begin(), [](unsigned char ch) { return std::toupper(ch); });
-  return str;
-}
-
-std::string toLower(std::string str) {
-  std::transform(str.begin(), str.end(), str.begin(), [](unsigned char ch) { return std::tolower(ch); });
-  return str;
-}
+bool contains(const std::string& str, const std::string& pattern) { return str.find(pattern) != std::string::npos; }
 
 bool compare(const std::string& str1, const std::string& str2) { return (str1 == str2); }
 
+bool compareNoCase(char c1, char c2) {
+  return std::tolower(static_cast<unsigned char>(c1)) == std::tolower(static_cast<unsigned char>(c2));
+}
+
 bool compareNoCase(const std::string& str1, const std::string& str2) {
-  if (str1.size() != str2.size()) return false;
-  return std::equal(
-      str1.cbegin(), str1.cend(), str2.cbegin(),
-      [](std::string::value_type l, std::string::value_type r) { return std::tolower(l) == std::tolower(r); });
+  if (str1.length() != str2.length()) {
+    return false;
+  }
+
+  // 逐个字符比较（忽略大小写）
+  return std::equal(str1.begin(), str1.end(), str2.begin(), [](char c1, char c2) {
+    return std::tolower(static_cast<unsigned char>(c1)) == std::tolower(static_cast<unsigned char>(c2));
+  });
 }
 
-std::string& trimLeft(std::string& str, const std::string& whitespace) {
-  str.erase(0, str.find_first_not_of(whitespace));
-  return str;
+void trimLeft(std::string& str, char c) { str.erase(0, str.find_first_not_of(c)); }
+
+void trimRight(std::string& str, char c) { str.erase(str.find_last_not_of(c) + 1); }
+
+void trim(std::string& str, char c) {
+  trimRight(str, c);
+  trimLeft(str, c);
 }
 
-std::string& trimRight(std::string& str, const std::string& whitespace) {
-  str.erase(str.find_last_not_of(whitespace) + 1);
-  return str;
-}
-
-std::string& trim(std::string& str, const std::string& whitespace) {
-  return trimLeft(trimRight(str, whitespace), whitespace);
-}
-
-bool replaceFirst(std::string& str, const std::string& from, const std::string& to) {
-  size_t pos = str.find(from);
-  if (pos == std::string::npos) return false;
-
-  str.replace(pos, from.size(), to);
-  return true;
-}
-
-bool replaceLast(std::string& str, const std::string& from, const std::string& to) {
-  size_t pos = str.rfind(from);
-  if (pos == std::string::npos) return false;
-
-  str.replace(pos, from.size(), to);
-  return true;
-}
-
-size_t replaceAll(std::string& str, const std::string& from, const std::string& to) {
-  std::size_t count = 0;
-
+std::string replaceAll(const std::string& str, const std::string& from, const std::string& to) {
   size_t pos = 0;
-  while ((pos = str.find(from, pos)) != std::string::npos) {
-    str.replace(pos, from.size(), to);
-    pos += to.size();  // Move past the new string
-    ++count;
+  std::string subject = str;
+  while ((pos = subject.find(from, pos)) != std::string::npos) {
+    subject.replace(pos, from.length(), to);
+    pos += to.length();
   }
-
-  return count;
+  return subject;
 }
 
-std::vector<std::string> split(const std::string& str, const std::string& delimiters) {
-  std::vector<std::string> tokens;
-  std::string::size_type last_pos = str.find_first_not_of(delimiters, 0);
-  std::string::size_type pos = str.find_first_of(delimiters, last_pos);
-  while (std::string::npos != pos || std::string::npos != last_pos) {
-    tokens.emplace_back(str.substr(last_pos, pos - last_pos));
-    last_pos = str.find_first_not_of(delimiters, pos);
-    pos = str.find_first_of(delimiters, last_pos);
+std::vector<std::string> split(const std::string& str, const std::string& delims) {
+  std::vector<std::string> vec;
+  std::size_t old_pos = 0;
+  std::size_t pos = 0;
+  while ((pos = str.find_first_of(delims, old_pos)) != std::string::npos) {
+    vec.emplace_back(str.substr(old_pos, pos - old_pos));
+    old_pos = pos + 1;
   }
-
-  return tokens;
+  vec.emplace_back(str.substr(old_pos));
+  return vec;
 }
 
 std::string join(char glue, const std::vector<std::string>& pieces) {

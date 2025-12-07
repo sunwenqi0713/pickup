@@ -17,7 +17,7 @@ namespace thread {
  * 示例用法：
  * @code
  * Event event(true); // 手动重置事件
- * event.signal();    // 触发事件
+ * event.set();    // 触发事件
  * event.wait(Event::TIMEOUT_INFINITE); // 无限等待事件
  * @endcode
  */

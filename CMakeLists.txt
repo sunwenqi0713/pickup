@@ -31,6 +31,7 @@ list(APPEND PROJECT_SOURCES
     src/Timestamp.cpp
     src/Timespan.cpp
     src/DateTime.cpp
+    src/CircularBuffer.cpp
 )
 
 if (PICKUP_STATIC_LIBS)
