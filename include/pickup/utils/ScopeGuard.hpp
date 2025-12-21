@@ -4,13 +4,13 @@
 
 // Based on http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0052r2.pdf
 /**
- *void foo() {
+ * void foo() {
  *  int* p = new int(42);
  *  auto guard = make_guard([&]() { delete p; });
  *  // ...
  *  // 在这里可以对 p 进行操作
  *  // ...
- *}
+ * }
  */
 
 namespace pickup {

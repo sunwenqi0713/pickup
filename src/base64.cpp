@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "pickup/utils/StringUtils.h"
+
 namespace pickup {
 namespace codec {
 
@@ -77,7 +79,7 @@ inline std::string base64_decode(std::string const& input) {
   size_t in_len = input.size();  // 输入字符串长度
   int i = 0;
   int j = 0;
-  int index = 0;                                     // 输入字符串索引
+  int index = 0;                                   // 输入字符串索引
   unsigned char char_array_4[4], char_array_3[3];  // 解码用缓冲区
   std::string ret;                                 // 返回的解码结果
 
@@ -124,6 +126,46 @@ inline std::string base64_decode(std::string const& input) {
   }
 
   return ret;
+}
+
+std::string base64UrlToBase64(const std::string& base64url) {
+  std::string temp;
+  temp.reserve(base64url.size() + 4);
+
+  // change Base64 alphabet from urlsafe version to standard
+  for (const auto& c : base64url) {
+    if (c == '-') {
+      temp += '+';
+    } else if (c == '_') {
+      temp += '/';
+    } else {
+      temp += c;
+    }
+  }
+
+  // add padding
+  if ((base64url.size() % 4) != 0u) {
+    int toAppend = 4 - static_cast<int>(base64url.size() % 4);
+    for (int i = 0; i < toAppend; i++) {
+      temp += '=';
+    }
+  }
+
+  return temp;
+}
+
+std::string base64ToBase64Url(const std::string& base64) {
+  std::string temp(base64);
+
+  // remove padding
+  size_t found = temp.find_last_not_of('=');
+  if (found == std::string::npos) return "";
+
+  // change Base64 alphabet from standard version to urlsafe
+  utils::replaceAll(temp, "+", "-");
+  utils::replaceAll(temp, "/", "_");
+
+  return temp.substr(0, found + 1);
 }
 
 }  // namespace codec

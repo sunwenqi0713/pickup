@@ -6,8 +6,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-/*!
- * @file angles.h
+/**
  * @brief 定义了一些角度相关的工具函数
  * 角度与弧度的转换转换关系如下
  * radians = degrees x π / 180
@@ -16,21 +15,21 @@
 namespace pickup {
 namespace math {
 
-/*!
+/**
  * @brief 将角度从度数转换为弧度
  * @param degrees 输入的角度值（度数）
  * @return 对应的弧度值
  */
 double fromDegrees(double degrees);
 
-/*!
+/**
  * @brief 将弧度转换为角度（度数）
  * @param radians 输入的弧度值
  * @return 对应的角度值（度数）
  */
 double toDegrees(double radians);
 
-/*!
+/**
  * @brief 将角度归一化到[0, 2π)区间
  * @param angle 输入的角度值（弧度）
  * @return 归一化后的角度值（弧度），范围[0, 2π)
@@ -40,7 +39,7 @@ double toDegrees(double radians);
  */
 double normalizeAnglePositive(double angle);
 
-/*!
+/**
  * @brief 将角度归一化到[-π, π)区间
  * @param angle 输入的角度值（弧度）
  * @return 归一化后的角度值（弧度），范围[-π, π)

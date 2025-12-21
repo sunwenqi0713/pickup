@@ -13,7 +13,6 @@
 namespace pickup {
 namespace time {
 
-// **静态成员变量的定义**
 std::atomic<uint32_t> Time::lastMSCounterValue_{0};
 
 Time::Time(int64_t ms) noexcept : millisSinceEpoch_(ms) {}
@@ -203,7 +202,6 @@ int64_t Time::secondsToHighResolutionTicks(double seconds) noexcept {
   return (int64_t)(seconds * (double)getHighResolutionTicksPerSecond());
 }
 
-// **实现 operator+= 和 operator-=**
 Time& Time::operator+=(Timespan delta) noexcept {
   millisSinceEpoch_ += delta.inMilliseconds();
   return *this;
@@ -419,7 +417,6 @@ Time Time::getCompilationDate() {
   return Time(year, month, day, hour, minute, second, 0, true);
 }
 
-// **实现全局操作符函数**
 Time operator+(Time time, Timespan delta) noexcept {
   time += delta;
   return time;

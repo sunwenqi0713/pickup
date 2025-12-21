@@ -1,11 +1,12 @@
 #include "pickup/codec/hex.h"
 
+#include <array>
 #include <iostream>
 
 namespace pickup {
 namespace codec {
 
-std::string bytesToHex(const uint8_t* data, size_t len, bool uppercase) {
+std::string encode(const uint8_t* data, size_t len, bool uppercase) {
   // 十六进制字符表
   const char* hex_table = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 
@@ -22,11 +23,7 @@ std::string bytesToHex(const uint8_t* data, size_t len, bool uppercase) {
   return hex_str;
 }
 
-std::string bytesToHex(const std::vector<uint8_t>& data, bool uppercase) {
-  return bytesToHex(data.data(), data.size(), uppercase);
-}
-
-std::string bytesToHexWithSeparator(const uint8_t* data, size_t len, bool uppercase, char separator) {
+std::string encodeWithSeparator(const uint8_t* data, size_t len, bool uppercase, char separator) {
   const char* hex_table = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 
   std::string hex_str;
@@ -54,14 +51,10 @@ std::string bytesToHexWithSeparator(const uint8_t* data, size_t len, bool upperc
   return hex_str;
 }
 
-std::string bytesToHexWithSeparator(const std::vector<uint8_t>& data, bool uppercase, char separator) {
-  return bytesToHexWithSeparator(data.data(), data.size(), uppercase, separator);
-}
-
-std::optional<std::vector<uint8_t>> hexToBytes(const std::string& hex_str) {
+std::optional<std::vector<uint8_t>> decode(const std::string& input) {
   // 验证输入有效性
-  if (hex_str.length() % 2 != 0) {
-    std::cerr << "Invalid hex string length: " << hex_str.length() << ", hex string length must be even." << std::endl;
+  if (input.length() % 2 != 0) {
+    std::cerr << "Invalid hex string length: " << input.length() << ", hex string length must be even." << std::endl;
     return std::nullopt;
   }
 
@@ -76,15 +69,15 @@ std::optional<std::vector<uint8_t>> hexToBytes(const std::string& hex_str) {
   }
 
   std::vector<uint8_t> bytes;
-  bytes.reserve(hex_str.length() / 2);  // 预分配空间
+  bytes.reserve(input.length() / 2);  // 预分配空间
 
-  for (size_t i = 0; i < hex_str.length(); i += 2) {
+  for (size_t i = 0; i < input.length(); i += 2) {
     // 检查字符有效性
-    uint8_t high_nibble = lookup[static_cast<uint8_t>(hex_str[i])];
-    uint8_t low_nibble = lookup[static_cast<uint8_t>(hex_str[i + 1])];
+    uint8_t high_nibble = lookup[static_cast<uint8_t>(input[i])];
+    uint8_t low_nibble = lookup[static_cast<uint8_t>(input[i + 1])];
 
     if (high_nibble == 0xFF || low_nibble == 0xFF) {
-      std::cerr << "Invalid hex character: " << hex_str[i] << " or " << hex_str[i + 1] << std::endl;
+      std::cerr << "Invalid hex character: " << input[i] << " or " << input[i + 1] << std::endl;
       return std::nullopt;
     }
 
@@ -95,19 +88,64 @@ std::optional<std::vector<uint8_t>> hexToBytes(const std::string& hex_str) {
   return bytes;
 }
 
-std::optional<std::vector<uint8_t>> hexToBytesWithSeparator(const std::string& hex_str, char separator) {
+std::optional<std::vector<uint8_t>> decodeWithSeparator(const std::string& input, char separator) {
   std::vector<uint8_t> bytes;
   std::string clean_hex;
-  clean_hex.reserve(hex_str.length());
+  clean_hex.reserve(input.length());
 
   // 移除分隔符
-  for (char c : hex_str) {
+  for (char c : input) {
     if (c != separator) {
       clean_hex.push_back(c);
     }
   }
 
-  return hexToBytes(clean_hex);
+  return decode(clean_hex);
+}
+
+std::string toHex(uint8_t value, bool uppercase) {
+  const char* hex_table = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+  return {hex_table[value >> 4], hex_table[value & 0x0F]};
+}
+
+std::string toHex(uint16_t value, bool uppercase) {
+  std::array<uint8_t, 2> data;
+
+  // This is explicitly done for performance reasons
+  // using std::stringstream with std::hex is ~3 orders of magnitude slower.
+  data[1] = (value & 0x00FF);
+  data[0] = (value & 0xFF00) >> 8;
+
+  return encode(data.data(), data.size());
+}
+
+std::string toHex(uint32_t value, bool uppercase) {
+  std::array<uint8_t, 4> data;
+
+  // This is explicitly done for performance reasons
+  // using std::stringstream with std::hex is ~3 orders of magnitude slower
+  data[3] = (value & 0x000000FF);
+  data[2] = (value & 0x0000FF00) >> 8;
+  data[1] = (value & 0x00FF0000) >> 16;
+  data[0] = (value & 0xFF000000) >> 24;
+
+  return encode(data.data(), data.size(), uppercase);
+}
+
+std::string toHex(uint64_t value, bool uppercase) {
+  std::array<uint8_t, 8> data;
+
+  // This is explicitly done for performance reasons
+  data[7] = (value & 0x00000000000000FF);
+  data[6] = (value & 0x000000000000FF00) >> 8;
+  data[5] = (value & 0x0000000000FF0000) >> 16;
+  data[4] = (value & 0x00000000FF000000) >> 24;
+  data[3] = (value & 0x000000FF00000000) >> 32;
+  data[2] = (value & 0x0000FF0000000000) >> 40;
+  data[1] = (value & 0x00FF000000000000) >> 48;
+  data[0] = (value & 0xFF00000000000000) >> 56;
+
+  return encode(data.data(), data.size(), uppercase);
 }
 
 }  // namespace codec
