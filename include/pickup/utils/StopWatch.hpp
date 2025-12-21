@@ -1,37 +1,33 @@
 #pragma once
 
-#pragma once
-
-#include <format>
-
 #include <array>
 #include <chrono>
+#include <format>
 #include <string>
-
-#include "pickup/time/Duration.hpp"
 
 namespace pickup {
 namespace utils {
-// 用于测量时间间隔的辅助类。默认使用 StopWatch 别名表示单调时钟。
-//
-// 基本用法：
-//
-//   StopWatch sw(StopWatch::STARTED);
-//   doSomething();
-//   LOG("操作耗时 {}ms", sw.elapsedMs());
-//
-// 如果需要更手动地控制秒表，可以显式调用 start() 和 stop()。
-// 默认情况下，秒表在停止状态下启动，需要调用 start() 来开始计时。
-//
-//   StopWatch sw;
-//   sw.start();
-//   doSomething();
-//   sw.stop();
-//   LOG("操作耗时 {}ms", sw.elapsedMs());
-//
-// 此类对于运行状态的更改不是线程安全的。如果打算在线程之间共享此对象
-// （例如异步回调中更新 StopWatch 的运行状态），必须确保只有一个线程
-// 在任何时候更新该类，包括读取器。对 StopWatch 的并发读取总是线程安全的。
+/** 用于测量时间间隔的辅助类。默认使用 StopWatch 别名表示单调时钟。
+ *
+ * 基本用法：
+ *
+ *   StopWatch sw(StopWatch::STARTED);
+ *   doSomething();
+ *   LOG("操作耗时 {}ms", sw.elapsedMs());
+ *
+ * 如果需要更手动地控制秒表，可以显式调用 start() 和 stop()。
+ * 默认情况下，秒表在停止状态下启动，需要调用 start() 来开始计时。
+ *
+ *   StopWatch sw;
+ *   sw.start();
+ *   doSomething();
+ *   sw.stop();
+ *   LOG("操作耗时 {}ms", sw.elapsedMs());
+ *
+ * 此类对于运行状态的更改不是线程安全的。如果打算在线程之间共享此对象
+ * （例如异步回调中更新 StopWatch 的运行状态），必须确保只有一个线程
+ * 在任何时候更新该类，包括读取器。对 StopWatch 的并发读取总是线程安全的。
+ */
 template <class Clock>
 class StopWatchGeneric {
  public:
