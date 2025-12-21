@@ -1,159 +1,133 @@
-#pragma once
+﻿#pragma once
 
-#include "pickup/time/Timestamp.h"
+#include <cstdint>
+#include <string>
 
 namespace pickup {
 namespace time {
 
-/**
- * @brief 表示最大精度为微秒的时间跨度类
- * @note 该类可表示从微秒到天级别的时间跨度，支持比较、算术运算和单位转换。
- */
+/** 相对时间度量。
+
+    时间以秒为单位存储，采用双精度浮点精度，可以是正数或负数。
+
+    如果需要绝对时间（即日期+时间），请参阅 Time 类。
+
+    @tags{Core}
+*/
 class Timespan {
  public:
-  using TimeDiff = Timestamp::TimeDiff;  ///< 时间差值类型（微秒单位）
-
-  // 创建零时间跨度
-  Timespan();
-
-  /**
-   * @brief 通过微秒数创建时间跨度
-   * @param microseconds 总微秒数
+  /** 创建 Timespan 对象。
+   *
+   *   @param seconds  秒数，可以是正数或负数。
+   *   @see milliseconds, minutes, hours, days, weeks
    */
-  Timespan(TimeDiff microseconds);
+  explicit Timespan(double seconds = 0.0) noexcept;
 
-  /**
-   * @brief 通过秒和微秒创建时间跨度（兼容 struct timeval）
-   * @param seconds 秒数
-   * @param microseconds 微秒数（0-999999）
-   * @note 该构造函数将秒数转换为微秒数，并与微秒数相加，形成总的微秒数。
+  /** 复制另一个相对时间对象。 */
+  Timespan(const Timespan& other) noexcept;
+
+  /** 复制另一个相对时间对象。 */
+  Timespan& operator=(const Timespan& other) noexcept;
+
+  /** 析构函数。 */
+  ~Timespan() noexcept;
+
+  /** 创建一个表示若干毫秒的新 Timespan 对象。
+   *   @see seconds, minutes, hours, days, weeks
    */
-  Timespan(long seconds, long microseconds);
+  static Timespan milliseconds(int milliseconds) noexcept;
 
-  /**
-   * @brief 通过多级时间单位创建时间跨度
-   * @param days 天数
-   * @param hours 小时数（0-23）
-   * @param minutes 分钟数（0-59）
-   * @param seconds 秒数（0-59）
-   * @param microseconds 微秒数（0-999999）
-   * @note 该构造函数将所有时间单位转换为微秒数，并相加形成总的微秒数。
+  /** 创建一个表示若干毫秒的新 Timespan 对象。
+   *   @see seconds, minutes, hours, days, weeks
    */
-  Timespan(int days, int hours, int minutes, int seconds, int microseconds);
+  static Timespan milliseconds(int64_t milliseconds) noexcept;
 
-  // 拷贝构造函数
-  Timespan(const Timespan& timespan);
-
-  // 析构函数
-  ~Timespan();
-
-  // 拷贝赋值操作符
-  Timespan& operator=(const Timespan& timespan);
-
-  // 通过微秒数赋值
-  Timespan& operator=(TimeDiff microseconds);
-
-  /**
-   * @brief 分配多级时间单位的时间跨度
-   * @param days 天数
-   * @param hours 小时数（0-23）
-   * @param minutes 分钟数（0-59）
-   * @param seconds 秒数（0-59）
-   * @param microseconds 微秒数（0-999999）
-   * @note 该方法将所有时间单位转换为微秒数，并相加形成总的微秒数。
+  /** 创建一个表示若干秒的新 Timespan 对象。
+   *   @see milliseconds, minutes, hours, days, weeks
    */
-  Timespan& assign(int days, int hours, int minutes, int seconds, int microseconds);
+  static Timespan seconds(double seconds) noexcept;
 
-  /**
-   * @brief 分配秒和微秒的时间跨度（兼容 struct timeval）
-   * @param seconds 秒数
-   * @param microseconds 微秒数（0-999999）
-   * @note 该方法将秒数转换为微秒数，并与微秒数相加，形成总的微秒数。
+  /** 创建一个表示若干分钟的新 Timespan 对象。
+   *   @see milliseconds, hours, days, weeks
    */
-  Timespan& assign(long seconds, long microseconds);
+  static Timespan minutes(double numberOfMinutes) noexcept;
 
-  // 与另一个 Timespan 交换值
-  void swap(Timespan& timespan);
-
-  // 比较操作符（Timespan vs Timespan）
-  bool operator==(const Timespan& ts) const;
-  bool operator!=(const Timespan& ts) const;
-  bool operator>(const Timespan& ts) const;
-  bool operator>=(const Timespan& ts) const;
-  bool operator<(const Timespan& ts) const;
-  bool operator<=(const Timespan& ts) const;
-
-  // 比较操作符（Timespan vs 微秒数）
-  bool operator==(TimeDiff microseconds) const;
-  bool operator!=(TimeDiff microseconds) const;
-  bool operator>(TimeDiff microseconds) const;
-  bool operator>=(TimeDiff microseconds) const;
-  bool operator<(TimeDiff microseconds) const;
-  bool operator<=(TimeDiff microseconds) const;
-
-  // 算术操作（Timespan vs Timespan）
-  Timespan operator+(const Timespan& d) const;
-  Timespan operator-(const Timespan& d) const;
-  Timespan& operator+=(const Timespan& d);
-  Timespan& operator-=(const Timespan& d);
-
-  // 算术操作（Timespan vs 微秒数）
-  Timespan operator+(TimeDiff microseconds) const;
-  Timespan operator-(TimeDiff microseconds) const;
-  Timespan& operator+=(TimeDiff microseconds);
-  Timespan& operator-=(TimeDiff microseconds);
-
-  // 获取天数部分（总天数中的整数值）
-  int days() const;
-
-  // 获取小时部分（0-23）
-  int hours() const;
-
-  // 获取总小时数（包含天数转换）
-  int totalHours() const;
-
-  // 获取分钟部分（0-59）
-  int minutes() const;
-
-  // 获取总分钟数（包含小时/天数转换）
-  int totalMinutes() const;
-
-  // 获取秒部分（0-59）
-  int seconds() const;
-
-  // 获取总秒数（包含分钟/小时/天数转换）
-  int totalSeconds() const;
-
-  // 获取毫秒部分（0-999）
-  int milliseconds() const;
-
-  // 获取总毫秒数
-  TimeDiff totalMilliseconds() const;
-
-  /**
-   * @brief 获取微秒部分（0-999）
-   * @note 此处的微秒是秒后的余数
+  /** 创建一个表示若干小时的新 Timespan 对象。
+   *   @see milliseconds, minutes, days, weeks
    */
-  int microseconds() const;
+  static Timespan hours(double numberOfHours) noexcept;
 
-  /**
-   * @brief 获取微秒部分（0-999999）
-   * @note 此处的微秒是整个秒后的余数
+  /** 创建一个表示若干天的新 Timespan 对象。
+   *  @see milliseconds, minutes, hours, weeks
    */
-  int useconds() const;
+  static Timespan days(double numberOfDays) noexcept;
 
-  // 获取总微秒数
-  TimeDiff totalMicroseconds() const;
+  /** 创建一个表示若干周的新 Timespan 对象。
+   *   @see milliseconds, minutes, hours, days
+   */
+  static Timespan weeks(double numberOfWeeks) noexcept;
 
-  // 时间单位常量（单位：微秒）
-  static const TimeDiff MILLISECONDS;  ///< 1 毫秒 = 1,000 微秒
-  static const TimeDiff SECONDS;       ///< 1 秒 = 1,000,000 微秒
-  static const TimeDiff MINUTES;       ///< 1 分钟 = 60,000,000 微秒
-  static const TimeDiff HOURS;         ///< 1 小时 = 3,600,000,000 微秒
-  static const TimeDiff DAYS;          ///< 1 天 = 86,400,000,000 微秒
+  /** 返回此时间表示的毫秒数。
+   *   @see milliseconds, inSeconds, inMinutes, inHours, inDays, inWeeks
+   */
+  int64_t inMilliseconds() const noexcept;
+
+  /** 返回此时间表示的秒数。
+   *  @see inMilliseconds, inMinutes, inHours, inDays, inWeeks
+   */
+  double inSeconds() const noexcept { return seconds_; }
+
+  /** 返回此时间表示的分钟数。
+   *   @see inMilliseconds, inSeconds, inHours, inDays, inWeeks
+   */
+  double inMinutes() const noexcept;
+
+  /** 返回此时间表示的小时数。
+   *   @see inMilliseconds, inSeconds, inMinutes, inDays, inWeeks
+   */
+  double inHours() const noexcept;
+
+  /** 返回此时间表示的天数。
+   *   @see inMilliseconds, inSeconds, inMinutes, inHours, inWeeks
+   */
+  double inDays() const noexcept;
+
+  /** 返回此时间表示的周数。
+   *  @see inMilliseconds, inSeconds, inMinutes, inHours, inDays
+   */
+  double inWeeks() const noexcept;
+
+  /** 将另一个 Timespan 添加到此时间。 */
+  Timespan operator+=(Timespan timeToAdd) noexcept;
+  /** 从此时间中减去另一个 RelativeTime。 */
+  Timespan operator-=(Timespan timeToSubtract) noexcept;
+
+  /** 将若干秒添加到此时间。 */
+  Timespan operator+=(double secondsToAdd) noexcept;
+  /** 从此时间中减去若干秒。 */
+  Timespan operator-=(double secondsToSubtract) noexcept;
 
  private:
-  TimeDiff span_;  ///< 内部存储的总微秒数
+  double seconds_;  // 存储时间的秒数
 };
+
+/** 比较两个 Timespan 对象 */
+bool operator==(Timespan t1, Timespan t2) noexcept;
+/** 比较两个 Timespan 对象 */
+bool operator!=(Timespan t1, Timespan t2) noexcept;
+/** 比较两个 Timespan 对象 */
+bool operator>(Timespan t1, Timespan t2) noexcept;
+/** 比较两个 Timespan 对象 */
+bool operator<(Timespan t1, Timespan t2) noexcept;
+/** 比较两个 Timespan 对象 */
+bool operator>=(Timespan t1, Timespan t2) noexcept;
+/** 比较两个 Timespan 对象 */
+bool operator<=(Timespan t1, Timespan t2) noexcept;
+
+/** 将两个 Timespan 相加 */
+Timespan operator+(Timespan t1, Timespan t2) noexcept;
+/** 将两个 Timespan 相减 */
+Timespan operator-(Timespan t1, Timespan t2) noexcept;
+
 }  // namespace time
 }  // namespace pickup

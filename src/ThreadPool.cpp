@@ -40,7 +40,7 @@ void ThreadPool::start(size_t numThreads) {
   for (int i = 0; i < numThreads; ++i) {
     threads_.emplace_back([this, id = i]() {
       // Give the name of ThreadPool to threads created by the ThreadPool.
-      Thread::set_name((name_ + std::to_string(id)).c_str());
+      setThreadName((name_ + std::to_string(id)).c_str());
       threadFunc();
     });
   }

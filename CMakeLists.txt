@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 project (pickup)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # create compile_commands.json
@@ -26,12 +26,11 @@ list(APPEND PROJECT_SOURCES
     src/ThreadPool.cpp
     src/Event.cpp
     src/Application.cpp
-    src/Result.cpp
     src/hex.cpp
-    src/Timestamp.cpp
-    src/Timespan.cpp
-    src/DateTime.cpp
     src/CircularBuffer.cpp
+    src/FileUtils.cpp
+    src/Timespan.cpp
+    src/Time.cpp
 )
 
 if (PICKUP_STATIC_LIBS)

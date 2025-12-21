@@ -1,77 +1,70 @@
 #include "pickup/thread/Thread.h"
 
-#include "pickup/utils/platform.h"
-#ifdef PICKUP_WIN_OS
-#include <Windows.h>
-#else
+#include <cstring>
+#include <string>
+#include <thread>
+#include <utility>
+
+#if (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
 #include <pthread.h>
+#include <pthread_np.h>
+#endif
+
+#if __has_include(<sys/prctl.h>)
+#include <sys/prctl.h>
 #endif
 
 namespace pickup {
-namespace thread {
+namespace utils {
 
-std::thread::id Thread::get_id() const noexcept { return thread_.get_id(); }
-
-bool Thread::joinable() const noexcept { return thread_.joinable(); }
-
-void Thread::join() { thread_.join(); }
-
-size_t Thread::hardware_concurrency() noexcept {
-  const auto hc = std::thread::hardware_concurrency();
-  return (hc != 0) ? hc : kDefaultNumberOfCores;
-}
-
-#ifdef PICKUP_WIN_OS
-
-void Thread::set_name(const std::string& name) noexcept {
-  const std::wstring utf16_name(name.begin(), name.end());
-  ::SetThreadDescription(::GetCurrentThread(), utf16_name.data());
-}
-
-void Thread::set_thread_priority(int priority) noexcept {
-  // Windows 优先级等级
-  const int priorities[] = {
-      THREAD_PRIORITY_IDLE,          // 空闲优先级
-      THREAD_PRIORITY_LOWEST,        // 最低优先级
-      THREAD_PRIORITY_BELOW_NORMAL,  // 低于正常的优先级
-      THREAD_PRIORITY_NORMAL,        // 正常优先级（默认）
-      THREAD_PRIORITY_ABOVE_NORMAL,  // 高于正常的优先级
-      THREAD_PRIORITY_HIGHEST,       // 最高优先级
-      THREAD_PRIORITY_TIME_CRITICAL  // 时间关键优先级
-  };
-
-  if (priority >= 0 && priority <= 6) {
-    SetThreadPriority(::GetCurrentThread(), priorities[priority]);
-  }
-}
-
-#elif defined(PICKUP_UNIX_OS)
-
-void Thread::set_name(const std::string& name) noexcept { ::pthread_setname_np(::pthread_self(), name.data()); }
-
-void Thread::set_thread_priority(int priority) noexcept {
-  // 调度策略参数
-  sched_param param;
-  param.sched_priority = priority;  // 通常范围 1-99（实时策略）
-
-  // 设置调度策略（需要root权限）
-  ::pthread_setschedparam(::pthread_self(), SCHED_RR, &param);
-}
-
-#elif defined(PICKUP_MAC_OS)
-
-void Thread::set_name(const std::string& name) noexcept { ::pthread_setname_np(name.data()); }
-
-void Thread::set_thread_priority(int priority) noexcept {
-  // 调度策略参数
-  sched_param param;
-  param.sched_priority = priority;  // 通常范围 1-99（实时策略）
-
-  // 设置调度策略（需要root权限）
-  ::pthread_setschedparam(::pthread_self(), SCHED_RR, &param);
-}
-
+long getThreadID() {
+#if defined(__linux__) || defined(__ANDROID__)
+  return static_cast<long>(::syscall(SYS_gettid));
+#elif defined(__APPLE__)
+  uint64_t tid;
+  pthread_threadid_np(NULL, &tid);
+  return static_cast<long>(tid);
+#else
+  // Fallback to std::thread::id hash
+  std::thread::id this_id = std::this_thread::get_id();
+  return static_cast<long>(std::hash<std::thread::id>{}(this_id));
 #endif
+}
 
-}  // namespace thread
+void setThreadName(const std::string& name) {
+#if defined(PR_SET_NAME)
+  // 仅使用前15个字符（16 - NUL终止符）
+  // Linux系统使用prctl系统调用
+  ::prctl(PR_SET_NAME, name.c_str(), 0, 0, 0);
+#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
+  // BSD系列系统使用pthread_set_name_np
+  pthread_set_name_np(pthread_self(), name.c_str());
+#elif defined(__APPLE__)
+  // macOS系统使用pthread_setname_np
+  pthread_setname_np(name.c_str());
+#else
+  // 不支持的平台，静默忽略以避免未使用参数警告
+  (void)name;
+#endif
+}
+
+std::string getThreadName() {
+#if defined(PR_GET_NAME)
+  char name[16] = {};
+  ::prctl(PR_GET_NAME, name, 0, 0, 0);
+  return std::string(name);
+#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
+  char name[16] = {};
+  pthread_get_name_np(pthread_self(), name, sizeof(name));
+  return std::string(name);
+#elif defined(__APPLE__)
+  char name[64] = {};
+  pthread_getname_np(pthread_self(), name, sizeof(name));
+  return std::string(name);
+#else
+  return std::string();
+#endif
+}
+
+}  // namespace utils
 }  // namespace pickup
