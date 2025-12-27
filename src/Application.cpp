@@ -1,138 +1,191 @@
 #include "pickup/application/Application.h"
 
-#include <iostream>
-#include <thread>
-
-#include "pickup/application/SignalHandler.h"
-
 namespace pickup {
 namespace application {
 
-Application::Application() { start_time_ = std::chrono::steady_clock::now(); }
-
-Application::~Application() {}
-
-bool Application::init(int argc, char** argv) {
-  // 注册信号处理函数
-  SignalHandler::getInstance().registerHandler(SIGINT, [this](int signal) {
-    std::cout << "Received signal: " << signal << std::endl;
-    // 中断信号，通常由键盘 Ctrl+C 触发
-    should_exit_.store(true);
+Application::Application(const std::string& name) : name_(name), signalHandler_(SignalHandler::getInstance()) {
+  // 设置默认信号处理器
+  signalHandler_.onShutdown([this]() {
+    std::cout << "\nShutdown requested, stopping application..." << std::endl;
+    this->stop();
   });
 
-  SignalHandler::getInstance().registerHandler(SIGTERM, [this](int signal) {
-    std::cout << "Received signal: " << signal << std::endl;
-    // 终止信号，通常由 kill 命令发送
-    should_exit_.store(true);
-  });
+  std::cout << "Application '" << name_ << "' created" << std::endl;
+}
 
-  // 解析命令行参数
-  parseArguments(argc, argv);
+Application::~Application() {
+  stop();
 
-  if (!preInitialize()) {
-    std::cerr << "Pre-initialization failed." << std::endl;
+  if (mainThread_.joinable()) {
+    mainThread_.join();
+  }
+
+  std::cout << "Application '" << name_ << "' destroyed" << std::endl;
+}
+
+bool Application::start() {
+  if (started_) {
+    std::cout << "Application already started" << std::endl;
+    return true;
+  }
+
+  std::cout << "Starting application: " << name_ << std::endl;
+
+  // 启动所有组件
+  if (!startComponents()) {
+    std::cerr << "Failed to start components" << std::endl;
     return false;
   }
 
-  if (!initialize()) {
-    std::cerr << "Initialization failed." << std::endl;
-    return false;
-  }
+  started_ = true;
+  running_ = true;
 
-  if (!postInitialize()) {
-    std::cerr << "Post-initialization failed." << std::endl;
-    return false;
-  }
-
-  initialized_ = true;
+  std::cout << "Application started successfully" << std::endl;
   return true;
 }
 
-// TODO: run in loop
-int Application::run() {
-  if (!initialized_) {
-    std::cerr << "Application not initialized." << std::endl;
-    return -1;
+void Application::stop() {
+  if (!started_) {
+    return;
   }
 
-  int ret = main(args_);
-  shutdown();
-  return ret;
+  running_ = false;
+
+  std::cout << "Stopping application: " << name_ << std::endl;
+
+  // 停止所有组件
+  stopComponents();
+
+  started_ = false;
+
+  std::cout << "Application stopped" << std::endl;
 }
 
-int Application::main(const ArgVec& args) {
-  while (!should_exit_.load()) {
-    // 主业务逻辑循环
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::cout << "Application is running..." << std::endl;
+int Application::run() {
+  if (!start()) {
+    return 1;
   }
 
+  mainLoop();
   return 0;
 }
 
-void Application::addSubsystem(Subsystem::Ptr pSubsystem) { subsystems_.emplace_back(pSubsystem); }
-
-bool Application::preInitialize() {
-  // 预初始化阶段，加载配置文件和初始化日志系统
-  if (!loadConfiguration("config.yaml")) {
-    std::cerr << "Failed to load configuration." << std::endl;
-    return false;
+void Application::runAsync() {
+  if (!start()) {
+    return;
   }
-  std::cout << "Configuration loaded successfully." << std::endl;
 
-  if (!initializingLogger()) {
-    std::cerr << "Failed to initialize logger." << std::endl;
-    return false;
-  }
-  std::cout << "Logger initialized successfully." << std::endl;
-
-  return true;
+  mainThread_ = std::thread(&Application::mainLoop, this);
 }
 
-bool Application::postInitialize() {
-  for (auto& pSub : subsystems_) {
-    std::cout << "Initializing subsystem: " << pSub->name() << std::endl;
-    if (!pSub->initialize()) {
-      std::cerr << "Failed to initialize subsystem: " << pSub->name() << std::endl;
+void Application::wait() {
+  if (mainThread_.joinable()) {
+    mainThread_.join();
+  }
+}
+
+bool Application::startComponents() {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  std::cout << "Starting " << components_.size() << " components..." << std::endl;
+
+  for (auto& component : components_) {
+    std::cout << "  Starting component: " << component->getName() << std::endl;
+
+    if (!component->start()) {
+      std::cerr << "Failed to start component: " << component->getName() << std::endl;
+
+      // 回滚：停止已启动的组件
+      for (auto& comp : components_) {
+        if (comp->isRunning()) {
+          std::cout << "  Rolling back component: " << comp->getName() << std::endl;
+          comp->stop();
+        }
+      }
+
       return false;
     }
-    std::cout << "Subsystem initialized: " << pSub->name() << std::endl;
+    component->setRunning(true);
   }
 
+  std::cout << "All components started successfully" << std::endl;
   return true;
 }
 
-void Application::shutdown() {
-  for (auto it = subsystems_.rbegin(); it != subsystems_.rend(); ++it) {
-    auto& pSub = *it;
-    std::cout << "Stopping subsystem: " << pSub->name() << std::endl;
-    pSub->stop();
-    std::cout << "Subsystem stopped: " << pSub->name() << std::endl;
+void Application::stopComponents() {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  std::cout << "Stopping " << components_.size() << " components..." << std::endl;
+
+  // 反向停止组件
+  for (auto it = components_.rbegin(); it != components_.rend(); ++it) {
+    auto& component = *it;
+    if (component->isRunning()) {
+      std::cout << "  Stopping component: " << component->getName() << std::endl;
+      component->stop();
+      component->setRunning(false);
+    }
   }
 
-  for (auto it = subsystems_.rbegin(); it != subsystems_.rend(); ++it) {
-    auto& pSub = *it;
-    std::cout << "Uninitializing subsystem: " << pSub->name() << std::endl;
-    pSub->uninitialize();
-    std::cout << "Subsystem uninitialized: " << pSub->name() << std::endl;
-  }
+  std::cout << "All components stopped" << std::endl;
 }
 
-void Application::parseArguments(int argc, char** argv) {
-  args_.reserve(argc);
-  for (int i = 0; i < argc; ++i) {
-    std::string arg(argv[i]);
-    args_.emplace_back(arg);
+void Application::mainLoop() {
+  std::cout << "Application running. Press Ctrl+C to stop." << std::endl;
+
+  auto lastUpdate = std::chrono::steady_clock::now();
+  int updateCount = 0;
+
+  while (running_) {
+    // 检查信号
+    signalHandler_.checkSignals();
+
+    // 检查是否应该关闭
+    if (signalHandler_.shouldShutdown()) {
+      stop();
+      break;
+    }
+
+    // 计算时间间隔
+    auto now = std::chrono::steady_clock::now();
+    auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdate).count();
+    lastUpdate = now;
+
+    // 更新组件
+    bool allOk = true;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      for (auto& component : components_) {
+        if (component->isRunning()) {
+          if (!component->update()) {
+            std::cerr << "Component update failed: " << component->getName() << std::endl;
+            allOk = false;
+          }
+        }
+      }
+    }
+
+    // 如果有组件更新失败，停止应用
+    if (!allOk) {
+      std::cerr << "Component failure detected, stopping application" << std::endl;
+      stop();
+      break;
+    }
+
+    updateCount++;
+
+    // 每10次更新显示一次状态
+    if (updateCount % 10 == 0) {
+      std::cout << "Application update #" << updateCount << std::endl;
+    }
+
+    // 限制更新频率（大约每秒10次）
+    if (delta < 100) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100 - delta));
+    }
   }
-}
 
-bool Application::initializingLogger() { return true; }
-
-bool Application::loadConfiguration(const std::string& path) { return true; }
-
-std::chrono::steady_clock::duration Application::uptime() const {
-  auto uptime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time_);
-  return uptime;
+  std::cout << "Application main loop ended after " << updateCount << " updates" << std::endl;
 }
 
 }  // namespace application

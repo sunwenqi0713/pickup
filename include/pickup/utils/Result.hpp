@@ -115,5 +115,5 @@ E Result<T, E>::valueOr(DefaultType&& defaultValue) const {
     return isSuccess() ? value_ : static_cast<E>(std::forward<DefaultType>(defaultValue));
 }
 
-}  // namespace error
 }  // namespace utils
+}  // namespace pickup

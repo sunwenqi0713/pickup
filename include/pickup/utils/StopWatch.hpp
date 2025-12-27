@@ -8,47 +8,64 @@
 namespace pickup {
 namespace utils {
 /**
- * 用于测量时间间隔的辅助类。默认使用 StopWatch 别名表示单调时钟
+ * @brief 时间间隔测量工具类（秒表）
  *
- * 基本用法：
+ * @details
+ * StopWatchGeneric 用于测量代码执行过程中消耗的时间间隔。
+ * 该类支持多次 start / stop，所有运行期间的时间会被累加。
  *
- * StopWatch sw(StopWatch::STARTED);
- * doSomething();
- * LOG("操作耗时 {}ms", sw.elapsedMs());
+ * 通常不直接使用该模板类，而是使用其别名 StopWatch，
+ * 后者基于单调时钟（std::chrono::steady_clock），
+ * 能保证测量结果不会出现负值。
  *
- * 如果需要更手动地控制秒表，可以显式调用 start() 和 stop()
- * 默认情况下，秒表在停止状态下启动，需要调用 start() 来开始计时
+ * @tparam Clock 使用的时钟类型（需满足 std::chrono Clock 要求）
  *
- * StopWatch sw;
- * sw.start();
- * doSomething();
- * sw.stop();
- * LOG("操作耗时 {}ms", sw.elapsedMs());
- *
- * 此类对于运行状态的更改不是线程安全的。如果打算在线程之间共享此对象
- * （例如异步回调中更新 StopWatch 的运行状态），必须确保只有一个线程
- * 在任何时候更新该类，包括读取器。对 StopWatch 的并发读取总是线程安全的
+ * @note
+ * - 本类在"运行状态（start/stop/reset）"的修改上 **不是线程安全的**
+ * - 并发读取 elapsed() 是线程安全的
+ * - 若跨线程更新运行状态，需由调用方自行保证同步
  */
 template <class Clock>
 class StopWatchGeneric {
  public:
+  using Duration = typename Clock::duration;
+  using TimePoint = typename Clock::time_point;
+
+  /**
+   * @brief 秒表初始状态
+   */
   enum Mode {
-    STOPPED = 0,
-    STARTED = 1,
+    Stopped = 0, /**< 初始为停止状态 */
+    Started = 1, /**< 构造时立即开始计时 */
   };
 
-  // 消息测试代码依赖下面的隐式构造函数以获得更短的代码
+  /**
+   * @brief 构造函数
+   *
+   * @param startMode 指定构造时是否立即启动秒表
+   *
+   * @details
+   * - 默认构造为 Stopped 状态
+   * - 若传入 Started，则在构造时记录当前时间并开始计时
+   *
+   * @note
+   * 该构造函数被设计为可隐式调用，用于简化测试代码书写
+   */
   // NOLINTNEXTLINE(google-explicit-constructor)
-  constexpr StopWatchGeneric(const Mode startMode = StopWatchGeneric::STOPPED) {
-    if (startMode == STARTED) {
+  constexpr StopWatchGeneric(const Mode startMode = StopWatchGeneric::Stopped) {
+    if (startMode == Started) {
       startingTime_ = now();
       running_ = true;
     }
   }
 
   /**
-   * 开始或恢复测量时间。如果之前已经启动/停止过，新测量的经过时间将与之前累计的经过时间相加
-   * 如果已经在运行中，尝试再次启动将不做任何操作
+   * @brief 开始或继续计时
+   *
+   * @details
+   * - 如果秒表当前为停止状态，则开始计时
+   * - 如果之前已经有累计时间，新计时会在此基础上累加
+   * - 若当前已处于运行状态，则该调用不会产生任何效果
    */
   void start() {
     if (running_) {
@@ -59,7 +76,14 @@ class StopWatchGeneric {
     running_ = true;
   }
 
-  /** 停止测量经过时间，不会重置已累计的经过时间 */
+  /**
+   * @brief 停止计时
+   *
+   * @details
+   * - 将当前运行区间的时间累加到总耗时
+   * - 不会清空已累计的时间
+   * - 若当前未运行，则该调用不会产生任何效果
+   */
   void stop() {
     if (!running_) {
       return;
@@ -68,50 +92,105 @@ class StopWatchGeneric {
     running_ = false;
   }
 
-  /** 停止时间间隔测量并将经过时间重置为零 */
+  /**
+   * @brief 重置秒表
+   *
+   * @details
+   * - 清空所有已累计的耗时
+   * - 将秒表置为停止状态
+   */
   void reset() {
     elapsedTotal_ = {};
     running_ = false;
   }
 
-  /** 辅助方法，先执行 reset() 然后执行 start() */
+  /**
+   * @brief 重新开始计时
+   *
+   * @details
+   * 等价于先调用 reset()，再调用 start()
+   */
   void restart() {
     elapsedTotal_ = {};
     startingTime_ = now();
     running_ = true;
   }
 
-  /** 获取经过的秒数（整数部分） */
-  int64_t elapsedSeconds() const { return static_cast<int64_t>(elapsed().seconds()); }
+  /**
+   * @brief 获取已消耗的总时间（秒）
+   *
+   * @return 已累计的秒数
+   */
+  int64_t elapsedSeconds() const { return std::chrono::duration_cast<std::chrono::seconds>(elapsed()).count(); }
 
-  /** 获取经过的毫秒数 */
-  int64_t elapsedMs() const { return static_cast<int64_t>(elapsed().milliseconds()); }
+  /**
+   * @brief 获取已消耗的总时间（毫秒）
+   *
+   * @return 已累计的毫秒数
+   */
+  int64_t elapsedMs() const { return std::chrono::duration_cast<std::chrono::milliseconds>(elapsed()).count(); }
 
-  /** 获取经过的微秒数 */
-  int64_t elapsedUs() const { return static_cast<int64_t>(elapsed().microseconds()); }
+  /**
+   * @brief 获取已消耗的总时间（微秒）
+   *
+   * @return 已累计的微秒数
+   */
+  int64_t elapsedUs() const { return std::chrono::duration_cast<std::chrono::microseconds>(elapsed()).count(); }
 
-  /** 获取秒表运行时的总经过时间 */
-  Duration<Clock> elapsed() const {
+  /**
+   * @brief 获取已消耗的总时间
+   *
+   * @details
+   * - 返回秒表自启动以来的累计耗时
+   * - 若当前仍在运行，会将"当前运行区间"的时间一并计入
+   *
+   * @return Duration 类型的时间间隔
+   */
+  Duration elapsed() const {
     auto elapsed = elapsedTotal_;
 
     if (running_) elapsed += fromStart();
 
-    return Duration<Clock>(elapsed);
+    return elapsed;
   }
 
-  const typename Clock::time_point& getStartTime() const { return startingTime_; }
+  /**
+   * @brief 获取最近一次 start() 时的起始时间点
+   *
+   * @return 时钟的 time_point
+   */
+  const TimePoint& startTime() const { return startingTime_; }
+
+  /**
+   * @brief 检查秒表是否正在运行
+   *
+   * @return 如果正在运行返回 true，否则返回 false
+   */
+  bool isRunning() const { return running_; }
 
  private:
-  typename Clock::duration fromStart() const { return now() - startingTime_; }
+  /**
+   * @brief 计算从最近一次 start() 到当前的时间间隔
+   */
+  Duration fromStart() const { return now() - startingTime_; }
 
-  static typename Clock::time_point now() noexcept { return Clock::now(); }
+  /**
+   * @brief 获取当前时间点
+   */
+  static TimePoint now() noexcept { return Clock::now(); }
 
-  typename Clock::duration elapsedTotal_{};
-  typename Clock::time_point startingTime_{};
-  bool running_ = false;
+  Duration elapsedTotal_{};  /**< 已累计的总耗时 */
+  TimePoint startingTime_{}; /**< 最近一次启动的时间点 */
+  bool running_ = false;     /**< 当前是否处于运行状态 */
 };
 
-// 用于单调时钟的秒表，保证经过的时间永远不会为负值
+/**
+ * @brief 基于单调时钟的秒表类型
+ *
+ * @details
+ * 使用 std::chrono::steady_clock，保证时间单调递增，
+ * 不受系统时间调整影响，适合用于性能统计与耗时测量。
+ */
 using StopWatch = StopWatchGeneric<std::chrono::steady_clock>;
 
 }  // namespace utils

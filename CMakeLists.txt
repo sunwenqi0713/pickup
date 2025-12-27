@@ -26,11 +26,14 @@ list(APPEND PROJECT_SOURCES
     src/ThreadPool.cpp
     src/Event.cpp
     src/Application.cpp
+    src/Component.cpp
+    src/SignalHandler.cpp
     src/hex.cpp
     src/CircularBuffer.cpp
     src/FileUtils.cpp
     src/Timespan.cpp
     src/Time.cpp
+    src/ByteBuffer.cpp
 )
 
 if (PICKUP_STATIC_LIBS)

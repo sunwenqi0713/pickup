@@ -10,12 +10,11 @@ template <typename... Args>
 #if defined(__cpp_constexpr) && __cpp_constexpr >= 201304L
 constexpr  // C++14及以上使用constexpr，编译时求值
 #else
-inline     // 否则使用inline，建议编译器内联展开
+inline  // 否则使用inline，建议编译器内联展开
 #endif
-    void
-    unused(const Args &...) noexcept {  // noexcept保证不抛出异常
-    // 函数体为空，不执行任何操作
-    // 模板参数包Args...可以接受任意数量和类型的参数
+    void unused(const Args&...) noexcept {  // noexcept保证不抛出异常
+                                            // 函数体为空，不执行任何操作
+                                            // 模板参数包Args...可以接受任意数量和类型的参数
 }
 
 }  // namespace utils
@@ -36,18 +35,18 @@ inline     // 否则使用inline，建议编译器内联展开
 #define PICKUP_UNUSED(...) (decltype(pickup::utils::unused(__VA_ARGS__))())
 #endif
 
-/*
+/** 使用示例：
  * 使用示例：
- * 
+ *
  * 1. 抑制未使用变量警告：
  *    int unused_variable = 42;
  *    PICKUP_UNUSED(unused_variable);  // 避免编译器警告
- * 
+ *
  * 2. 抑制多个未使用变量：
  *    void foo(int x, int y) {
  *        PICKUP_UNUSED(x, y);  // 同时标记x和y为"已使用"
  *    }
- * 
+ *
  * 3. 在条件编译中使用：
  *    #ifdef DEBUG
  *        // 调试代码...
