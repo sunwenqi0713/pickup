@@ -28,6 +28,19 @@ class Factory {
   using MapContainer = std::map<IdentifierType, CreateMethod>;
 
  public:
+    Factory() = default;
+    Factory(const Factory&) = delete;
+    Factory& operator=(const Factory&) = delete;
+    Factory(Factory&&) = delete;
+    Factory& operator=(Factory&&) = delete;
+
+    // Register a derived type with default constructor
+    template <typename Derived>
+    bool registerType(const IdentifierType& id) {
+        static_assert(std::is_base_of_v<AbstractProduct, Derived>, "Derived must inherit from AbstractProduct");
+        return registerCreator(id, [] { return std::make_unique<Derived>(); });
+    }
+
   /**
    * @brief 注册对象创建方法
    * @param id 类型标识符
