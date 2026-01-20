@@ -1,9 +1,16 @@
 #include "pickup/codec/url.h"
 
+#include <cctype>
+
 namespace pickup {
 namespace codec {
 
-inline unsigned char fromHex(unsigned char x) {
+/**
+ * @brief 将十六进制字符转换为数值
+ * @param x 十六进制字符 (0-9, A-F, a-f)
+ * @return 对应的数值 (0-15)
+ */
+static unsigned char hexToValue(unsigned char x) {
   if (x >= '0' && x <= '9') {
     return x - '0';
   }
@@ -16,45 +23,45 @@ inline unsigned char fromHex(unsigned char x) {
   return 0;
 }
 
-std::string url_encode(const std::string& value) {
+std::string urlEncode(const std::string& value) {
   std::string result;
-  result.reserve(value.length() * 3);  // Reserve space for efficiency
+  result.reserve(value.length() * 3);
 
-  const std::string hex_table = "0123456789ABCDEF";
+  static const char kHexTable[] = "0123456789ABCDEF";
   for (unsigned char ch : value) {
-    if (isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~') {
+    if (std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~') {
       result += static_cast<char>(ch);
     } else if (ch == ' ') {
-      result += '+';  // Convert space to '+'
+      result += '+';
     } else {
       result += '%';
-      result += hex_table[(ch >> 4) & 0x0F];  // High nibble
-      result += hex_table[ch & 0x0F];         // Low nibble
+      result += kHexTable[(ch >> 4) & 0x0F];
+      result += kHexTable[ch & 0x0F];
     }
   }
   return result;
 }
 
-std::string url_decode(const std::string& value) {
+std::string urlDecode(const std::string& value) {
   std::string result;
-  result.reserve(value.length());  // Reserve space for efficiency
+  result.reserve(value.length());
 
   for (size_t i = 0; i < value.length(); ++i) {
     char ch = value[i];
     if (ch == '%') {
       if (i + 2 >= value.size()) {
-        result += '?';  // Incomplete escape sequence
+        result += '?';  // 不完整的转义序列
         break;
       }
 
-      const char hi = fromHex(value[i + 1]);
-      const char lo = fromHex(value[i + 2]);
-      result += static_cast<char>((hi << 4) + lo);  // Convert hex to character
-      i += 2;                                       // Skip the next two characters
+      const char hi = hexToValue(value[i + 1]);
+      const char lo = hexToValue(value[i + 2]);
+      result += static_cast<char>((hi << 4) + lo);
+      i += 2;
     } else if (ch == '+') {
-      result += ' ';  // Convert '+' back to space
+      result += ' ';
     } else {
-      result += value[i];
+      result += ch;
     }
   }
   return result;

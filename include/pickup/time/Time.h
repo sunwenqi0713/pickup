@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <atomic>  // **添加这个头文件**
+#include <atomic>
 #include <cstdint>
 #include <string>
 

@@ -5,17 +5,17 @@
 namespace pickup {
 namespace utils {
 
-/** 检查文件是否存在
- *
+/**
+ * @brief 检查文件是否存在
  * @param filePath 要检查的文件路径
- * @return 如果文件存在则返回 true，否则返回 false
+ * @return 文件存在返回 true，否则返回 false
  */
 bool fileExists(const std::string& filePath);
 
-/** 删除指定文件
- *
+/**
+ * @brief 删除指定文件
  * @param filePath 要删除的文件路径
- * @return 如果文件成功删除则返回 true；如果文件不存在或删除失败则返回 false
+ * @return 删除成功返回 true，否则返回 false
  */
 bool removeFile(const std::string& filePath);
 

@@ -138,7 +138,7 @@ class CircularQueue {
   std::condition_variable not_empty_;  // 非空条件变量
   std::condition_variable not_full_;   // 非满条件变量
 
-  std::atomic<bool> is_closed_;  // 是否已关闭
+  bool is_closed_;  // 是否已关闭
 };
 
 }  // namespace utils
