@@ -11,6 +11,11 @@
 namespace pickup {
 namespace thread {
 
+/**
+ * @brief 线程池，用于并发执行任务
+ *
+ * 支持设置最大队列大小以限制任务堆积。
+ */
 class ThreadPool {
  public:
   using Task = std::function<void()>;
@@ -18,23 +23,36 @@ class ThreadPool {
   explicit ThreadPool(const std::string& name = "");
   ~ThreadPool();
 
-  // Must be called before start().
+  /**
+   * @brief 设置任务队列最大容量
+   * @param maxSize 最大容量（0 表示无限制）
+   * @note 必须在 start() 之前调用
+   */
   void setMaxQueueSize(int maxSize) { maxQueueSize_ = maxSize; }
 
+  /**
+   * @brief 启动线程池
+   * @param numThreads 工作线程数量
+   */
   void start(size_t numThreads);
+
+  /**
+   * @brief 停止线程池，等待所有线程结束
+   */
   void stop();
 
+  /// 获取线程池名称
   const std::string& name() const { return name_; }
 
+  /// 获取当前任务队列大小
   size_t queueSize() const;
 
-  // Could block if maxQueueSize > 0
-  // Call after stop() will return immediately.
-  // There is no move-only version of std::function in C++ as of C++14.
-  // So we don't need to overload a const& and an && versions
-  // as we do in (Bounded)BlockingQueue.
-  // https://stackoverflow.com/a/25408989
-  void addTask(Task f);
+  /**
+   * @brief 添加任务到队列
+   * @param task 要执行的任务
+   * @note 如果队列已满，会阻塞等待；如果线程池已停止，立即返回
+   */
+  void addTask(Task task);
 
  private:
   bool isFull() const;

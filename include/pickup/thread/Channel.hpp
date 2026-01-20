@@ -96,11 +96,11 @@ class Channel {
     return false;
   }
 
-  /**@brief 拷贝方式发送数据
-   * @param value 要发送的数据（拷贝方式）
-   * @ return true 发送成功 |false 通道已关闭
+  /**
+   * @brief 拷贝方式发送数据
+   * @param value 要发送的数据
+   * @return 发送成功返回 true，通道已关闭返回 false
    */
-
   bool send(const T& value) {
     std::unique_lock<std::mutex> lock(mutex_);
     if (closed_) return false;
@@ -137,29 +137,34 @@ class Channel {
     cv_.notify_all();
   }
 
-  /** @brief 清空队列（非线程安全）
-   *
-   * 适用于仅需传输最新数据的场景
-   * @warning 请确保无线程操作队列时调用
+  /**
+   * @brief 清空队列
+   * @note 线程安全
    */
   void clear() {
-    if (!queue_.empty()) {
-      std::unique_lock<std::mutex> lock(mutex_);
-      queue_ = {};
-    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    queue_ = {};
   }
 
-  /** @brief 检查队列是否为空
-   * @warning 由于多线程特性，返回值可能瞬时失效
-   * @return true 队列为空 | false 队列非空
+  /**
+   * @brief 检查队列是否为空
+   * @return 队列为空返回 true，否则返回 false
+   * @note 返回值可能瞬时失效（多线程环境）
    */
-  bool empty() const { return queue_.empty(); }
+  bool empty() const {
+    std::unique_lock<std::mutex> lock(mutex_);
+    return queue_.empty();
+  }
 
-  /** @brief 获取队列大小
-   * @warning 由于多线程特性，返回值可能瞬时失效
-   * @return size_t 队列大小
+  /**
+   * @brief 获取队列大小
+   * @return 队列中的元素数量
+   * @note 返回值可能瞬时失效（多线程环境）
    */
-  size_t size() const { return queue_.size(); }
+  size_t size() const {
+    std::unique_lock<std::mutex> lock(mutex_);
+    return queue_.size();
+  }
 
  private:
   std::queue<T> queue_;         ///< 数据存储队列

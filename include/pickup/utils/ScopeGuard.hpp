@@ -1,33 +1,37 @@
 #pragma once
 
-#include <type_traits>
-
-// Based on http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0052r2.pdf
-/**
- * void foo() {
- *  int* p = new int(42);
- *  auto guard = make_guard([&]() { delete p; });
- *  // ...
- *  // 在这里可以对 p 进行操作
- *  // ...
- * }
- */
+#include <utility>
 
 namespace pickup {
 namespace utils {
 
+/**
+ * @brief RAII 作用域守卫，离开作用域时自动执行清理函数
+ * @tparam F 清理函数类型
+ *
+ * @code
+ * void foo() {
+ *   int* p = new int(42);
+ *   auto guard = make_guard([&]() { delete p; });
+ *   // ... 使用 p ...
+ * }  // 自动调用 delete p
+ * @endcode
+ */
 template <typename F>
 class ScopeGuard final {
  public:
-  explicit ScopeGuard(F&& exit_func) : exit_func_(std::forward<F>(exit_func)) {}
+  explicit ScopeGuard(F&& exitFunc) : exitFunc_(std::forward<F>(exitFunc)) {}
 
-  ScopeGuard(ScopeGuard&& other)
-      : exit_func_(std::move(other.exit_func_)), execute_(std::exchange(other.execute_, false)) {}
+  ScopeGuard(ScopeGuard&& other) noexcept
+      : exitFunc_(std::move(other.exitFunc_)), execute_(std::exchange(other.execute_, false)) {}
 
   ~ScopeGuard() {
-    if (execute_ && exit_func_ != nullptr) exit_func_();
+    if (execute_) {
+      exitFunc_();
+    }
   }
 
+  /// 释放守卫，不再执行清理函数
   void release() { execute_ = false; }
 
   ScopeGuard(const ScopeGuard&) = delete;
@@ -35,10 +39,15 @@ class ScopeGuard final {
   ScopeGuard& operator=(ScopeGuard&&) = delete;
 
  private:
-  F exit_func_;
+  F exitFunc_;
   bool execute_{true};
 };
 
+/**
+ * @brief 创建作用域守卫
+ * @param f 清理函数（通常是 lambda）
+ * @return ScopeGuard 对象
+ */
 template <typename F>
 ScopeGuard<F> make_guard(F&& f) {
   return ScopeGuard<F>(std::forward<F>(f));

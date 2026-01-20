@@ -1,14 +1,16 @@
 #include "pickup/thread/ThreadPool.h"
 
-#include <assert.h>
-#include <stdio.h>
-
-#include <iostream>
+#include <cassert>
 
 #include "pickup/thread/Thread.h"
 
 namespace pickup {
 namespace thread {
+
+namespace {
+constexpr size_t kMaxThreadNum = 16;
+constexpr size_t kDefaultThreadNum = 1;
+}  // namespace
 
 ThreadPool::ThreadPool(const std::string& name) : name_(name), maxQueueSize_(0), running_(false) {}
 
@@ -20,18 +22,14 @@ ThreadPool::~ThreadPool() {
 
 void ThreadPool::start(size_t numThreads) {
   if (!threads_.empty()) {
-    std::cout << "Invalid operation." << std::endl;
-    return;
+    return;  // 已启动，忽略
   }
 
   if (numThreads == 0) {
-    std::cout << "ThreadPool's thread number is invalid value." << std::endl;
-    numThreads = 1;
+    numThreads = kDefaultThreadNum;
   }
 
-  constexpr unsigned int kMaxThreadNum = 16;
   if (numThreads > kMaxThreadNum) {
-    std::cout << "ThreadPool's thread number is too big." << std::endl;
     numThreads = kMaxThreadNum;
   }
 
