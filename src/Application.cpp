@@ -50,14 +50,12 @@ void Application::stop() {
   }
 
   running_ = false;
-
   std::cout << "Stopping application: " << name_ << std::endl;
 
   // 停止所有组件
   stopComponents();
 
   started_ = false;
-
   std::cout << "Application stopped" << std::endl;
 }
 
@@ -88,13 +86,10 @@ bool Application::startComponents() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   std::cout << "Starting " << components_.size() << " components..." << std::endl;
-
   for (auto& component : components_) {
     std::cout << "  Starting component: " << component->getName() << std::endl;
-
     if (!component->start()) {
       std::cerr << "Failed to start component: " << component->getName() << std::endl;
-
       // 回滚：停止已启动的组件
       for (auto& comp : components_) {
         if (comp->isRunning()) {
@@ -102,7 +97,6 @@ bool Application::startComponents() {
           comp->stop();
         }
       }
-
       return false;
     }
     component->setRunning(true);
@@ -116,7 +110,6 @@ void Application::stopComponents() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   std::cout << "Stopping " << components_.size() << " components..." << std::endl;
-
   // 反向停止组件
   for (auto it = components_.rbegin(); it != components_.rend(); ++it) {
     auto& component = *it;
@@ -126,7 +119,6 @@ void Application::stopComponents() {
       component->setRunning(false);
     }
   }
-
   std::cout << "All components stopped" << std::endl;
 }
 
