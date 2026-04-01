@@ -1,9 +1,9 @@
 #pragma once
 
 #include <functional>
-#include <iostream>
 #include <map>
 #include <memory>
+#include <stdexcept>
 
 namespace pickup {
 namespace utils {
@@ -22,9 +22,9 @@ namespace utils {
  */
 template <typename IdentifierType, class AbstractProduct>
 class Factory {
-  // 产品创建函数类型
+  /** @brief 产品创建函数类型 */
   using CreateMethod = std::function<std::unique_ptr<AbstractProduct>()>;
-  // 注册表容器类型
+  /** @brief 注册表容器类型 */
   using MapContainer = std::map<IdentifierType, CreateMethod>;
 
  public:
@@ -34,7 +34,7 @@ class Factory {
     Factory(Factory&&) = delete;
     Factory& operator=(Factory&&) = delete;
 
-    // Register a derived type with default constructor
+    /** @brief Register a derived type with default constructor */
     template <typename Derived>
     bool registerType(const IdentifierType& id) {
         static_assert(std::is_base_of_v<AbstractProduct, Derived>, "Derived must inherit from AbstractProduct");
@@ -51,16 +51,16 @@ class Factory {
     return producers_.emplace(id, creator).second;
   }
 
-  // 检查是否包含指定id的创建方法
+  /** @brief 检查是否包含指定 id 的创建方法 */
   bool contains(const IdentifierType& id) const { return producers_.find(id) != producers_.end(); }
 
-  // 注销指定id的创建方法
+  /** @brief 注销指定 id 的创建方法 */
   bool unregister(const IdentifierType& id) { return producers_.erase(id) == 1; }
 
-  // 清空所有注册项
+  /** @brief 清空所有注册项 */
   void clear() noexcept { producers_.clear(); }
 
-  // 判断工厂是否为空
+  /** @brief 判断工厂是否为空 */
   bool empty() const noexcept { return producers_.empty(); }
 
   /**
@@ -74,13 +74,13 @@ class Factory {
 
   /**
    * @brief 创建对象
-   * @return 成功返回对象指针，失败输出日志并返回nullptr
-   * @note 后续改为抛出异常或自定义错误处理策略
+   * @return 成功返回对象指针
+   * @throws std::invalid_argument 若 id 未注册
    */
   std::unique_ptr<AbstractProduct> create(const IdentifierType& id) {
     auto obj = createObjectOrNull(id);
     if (!obj) {
-      std::cerr << "Factory creation failed for type: " << id << std::endl;
+      throw std::invalid_argument("Factory: unknown type id");
     }
     return obj;
   }

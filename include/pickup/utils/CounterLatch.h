@@ -1,7 +1,9 @@
 #pragma once
 
+#include <condition_variable>
 #include <limits>
 #include <mutex>
+#include <stdexcept>
 
 namespace pickup {
 namespace utils {
@@ -36,8 +38,8 @@ class CounterLatch final {
   ~CounterLatch() = default;
 
   /**
-   * 增加门闩的计数（如果当前计数不是负数）
-   * return 如果计数成功增加，则返回 true；否则返回 false
+   * @brief 增加门闩的计数（如果当前计数不是负数）
+   * @return 如果计数成功增加，则返回 true；否则返回 false
    */
   bool countUp() {
     std::lock_guard<std::mutex> lock{mtx_};
@@ -49,26 +51,26 @@ class CounterLatch final {
   }
 
   /**
-   * 减少门闩的计数，如果计数达到零，则释放所有等待的线程。
-   * 如果当前计数大于零，则将其递减。
-   * 如果新计数为零，则通知所有等待的线程。
-   * 如果当前计数等于零，则不执行任何操作。
+   * @brief 减少门闩计数，达到 0 时唤醒所有等待线程
+   * @details
+   * - 若当前计数大于 0，则递减
+   * - 若递减后为 0，则通知所有等待线程
+   * - 若当前计数已为 0，则不执行操作
    */
   void countDown() {
     std::lock_guard<std::mutex> lock{mtx_};
     if (count_ > 0) {
       if (--count_ == 0) {
-        // 通知等待的线程
+        /** @brief 通知等待的线程 */
         cond_.notify_all();
       }
     }
   }
 
   /**
-   * 等待计数器达到 0。此方法返回后，计数器的值将变为无效（负数）。
-   * 此方法设计为仅供一次性使用。
-   *
-   * throws std::runtime_error 如果当前计数为负数。
+   * @brief 等待计数器达到 0
+   * @details 此方法返回后，计数器会被置为无效（负数），设计为一次性使用
+   * @throws std::runtime_error 如果当前计数已经为负数
    */
   void wait() {
     std::unique_lock<std::mutex> lock{mtx_};
@@ -80,15 +82,15 @@ class CounterLatch final {
   }
 
   /**
-   * 返回门闩的当前计数
+   * @brief 返回门闩的当前计数
    */
-  long getCount() {
+  long getCount() const {
     std::unique_lock<std::mutex> lock{mtx_};
     return count_;
   }
 
  private:
-  std::mutex mtx_;                ///< 互斥锁，用于保护对计数器的访问
+  mutable std::mutex mtx_;        ///< 互斥锁，用于保护对计数器的访问
   std::condition_variable cond_;  ///< 用于通知等待的线程
   long count_;                    ///< 门闩计数器
 };

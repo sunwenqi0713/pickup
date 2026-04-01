@@ -3,55 +3,82 @@
 namespace pickup {
 namespace time {
 
-Timespan::Timespan(const double secs) noexcept : seconds_(secs) {}
-Timespan::Timespan(const Timespan& other) noexcept : seconds_(other.seconds_) {}
-Timespan::~Timespan() noexcept {}
+// 公开构造函数：从 double 秒数转换，精度降至微秒级（double 约 15 位有效数字）
+Timespan::Timespan(double seconds) noexcept
+    : microseconds_(static_cast<int64_t>(seconds * 1e6)) {}
 
-Timespan Timespan::milliseconds(int milliseconds) noexcept { return Timespan((double)milliseconds * 0.001); }
-Timespan Timespan::milliseconds(int64_t milliseconds) noexcept { return Timespan((double)milliseconds * 0.001); }
-Timespan Timespan::seconds(double s) noexcept { return Timespan(s); }
-Timespan Timespan::minutes(double numberOfMinutes) noexcept { return Timespan(numberOfMinutes * 60.0); }
-Timespan Timespan::hours(double numberOfHours) noexcept { return Timespan(numberOfHours * (60.0 * 60.0)); }
-Timespan Timespan::days(double numberOfDays) noexcept { return Timespan(numberOfDays * (60.0 * 60.0 * 24.0)); }
-Timespan Timespan::weeks(double numberOfWeeks) noexcept { return Timespan(numberOfWeeks * (60.0 * 60.0 * 24.0 * 7.0)); }
+// 工厂方法：整数路径完全精确，不经过 double
 
-int64_t Timespan::inMilliseconds() const noexcept { return (int64_t)(seconds_ * 1000.0); }
-double Timespan::inMinutes() const noexcept { return seconds_ / 60.0; }
-double Timespan::inHours() const noexcept { return seconds_ / (60.0 * 60.0); }
-double Timespan::inDays() const noexcept { return seconds_ / (60.0 * 60.0 * 24.0); }
-double Timespan::inWeeks() const noexcept { return seconds_ / (60.0 * 60.0 * 24.0 * 7.0); }
-
-Timespan& Timespan::operator=(const Timespan& other) noexcept {
-  seconds_ = other.seconds_;
-  return *this;
+Timespan Timespan::milliseconds(int ms) noexcept {
+  return Timespan(static_cast<int64_t>(ms) * static_cast<int64_t>(1000));
 }
+
+Timespan Timespan::milliseconds(int64_t ms) noexcept {
+  return Timespan(ms * static_cast<int64_t>(1000));
+}
+
+Timespan Timespan::seconds(double s) noexcept {
+  return Timespan(static_cast<int64_t>(s * 1e6));
+}
+
+Timespan Timespan::minutes(double m) noexcept {
+  return Timespan(static_cast<int64_t>(m * 60e6));
+}
+
+Timespan Timespan::hours(double h) noexcept {
+  return Timespan(static_cast<int64_t>(h * 3600e6));
+}
+
+Timespan Timespan::days(double d) noexcept {
+  return Timespan(static_cast<int64_t>(d * 86400e6));
+}
+
+Timespan Timespan::weeks(double w) noexcept {
+  return Timespan(static_cast<int64_t>(w * 604800e6));
+}
+
+// 访问器
+
+int64_t Timespan::inMilliseconds() const noexcept { return microseconds_ / 1000; }
+double  Timespan::inMinutes()      const noexcept { return static_cast<double>(microseconds_) / 60e6; }
+double  Timespan::inHours()        const noexcept { return static_cast<double>(microseconds_) / 3600e6; }
+double  Timespan::inDays()         const noexcept { return static_cast<double>(microseconds_) / 86400e6; }
+double  Timespan::inWeeks()        const noexcept { return static_cast<double>(microseconds_) / 604800e6; }
+
+// 复合赋值运算符
 
 Timespan Timespan::operator+=(Timespan t) noexcept {
-  seconds_ += t.seconds_;
+  microseconds_ += t.microseconds_;
   return *this;
 }
+
 Timespan Timespan::operator-=(Timespan t) noexcept {
-  seconds_ -= t.seconds_;
+  microseconds_ -= t.microseconds_;
   return *this;
 }
+
 Timespan Timespan::operator+=(double secs) noexcept {
-  seconds_ += secs;
+  microseconds_ += static_cast<int64_t>(secs * 1e6);
   return *this;
 }
+
 Timespan Timespan::operator-=(double secs) noexcept {
-  seconds_ -= secs;
+  microseconds_ -= static_cast<int64_t>(secs * 1e6);
   return *this;
 }
+
+// 自由函数运算符
 
 Timespan operator+(Timespan t1, Timespan t2) noexcept { return t1 += t2; }
 Timespan operator-(Timespan t1, Timespan t2) noexcept { return t1 -= t2; }
 
-bool operator==(Timespan t1, Timespan t2) noexcept { return t1.inSeconds() == t2.inSeconds(); }
-bool operator!=(Timespan t1, Timespan t2) noexcept { return !(t1 == t2); }
-bool operator>(Timespan t1, Timespan t2) noexcept { return t1.inSeconds() > t2.inSeconds(); }
-bool operator<(Timespan t1, Timespan t2) noexcept { return t1.inSeconds() < t2.inSeconds(); }
-bool operator>=(Timespan t1, Timespan t2) noexcept { return t1.inSeconds() >= t2.inSeconds(); }
-bool operator<=(Timespan t1, Timespan t2) noexcept { return t1.inSeconds() <= t2.inSeconds(); }
+// 比较基于精确整数，无浮点舍入问题
+bool operator==(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() == t2.inMicroseconds(); }
+bool operator!=(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() != t2.inMicroseconds(); }
+bool operator> (Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() >  t2.inMicroseconds(); }
+bool operator< (Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() <  t2.inMicroseconds(); }
+bool operator>=(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() >= t2.inMicroseconds(); }
+bool operator<=(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() <= t2.inMicroseconds(); }
 
 }  // namespace time
 }  // namespace pickup

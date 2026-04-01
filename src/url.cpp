@@ -5,11 +5,9 @@
 namespace pickup {
 namespace codec {
 
-/**
- * @brief 将十六进制字符转换为数值
- * @param x 十六进制字符 (0-9, A-F, a-f)
- * @return 对应的数值 (0-15)
- */
+// 将十六进制字符转换为数值
+// x: 十六进制字符 (0-9, A-F, a-f)
+// 返回值: 对应的数值 (0-15)
 static unsigned char hexToValue(unsigned char x) {
   if (x >= '0' && x <= '9') {
     return x - '0';

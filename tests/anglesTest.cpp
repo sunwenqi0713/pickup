@@ -25,7 +25,7 @@ TEST(AnglesTest, NormalizeAnglePositive) {
     EXPECT_NEAR(pickup::math::normalizeAnglePositive(2*M_PI), 0.0, EPSILON);
     EXPECT_NEAR(pickup::math::normalizeAnglePositive(3*M_PI), M_PI, EPSILON);
     EXPECT_NEAR(pickup::math::normalizeAnglePositive(-M_PI/2), 3*M_PI/2, EPSILON);
-    EXPECT_NEAR(pickup::math::normalizeAnglePositive(5*M_PI), M_PI, EPSILON); // 假设输入5π
+    EXPECT_NEAR(pickup::math::normalizeAnglePositive(5*M_PI), M_PI, EPSILON); // 假设输入 5π
     EXPECT_NEAR(pickup::math::normalizeAnglePositive(-2*M_PI), 0.0, EPSILON);
     EXPECT_NEAR(pickup::math::normalizeAnglePositive(7*M_PI/2), 3*M_PI/2, EPSILON);
     EXPECT_NEAR(pickup::math::normalizeAnglePositive(-3*M_PI), M_PI, EPSILON);
@@ -33,11 +33,11 @@ TEST(AnglesTest, NormalizeAnglePositive) {
 
 TEST(AnglesTest, NormalizeAngle) {
     EXPECT_NEAR(pickup::math::normalizeAngle(0.0), 0.0, EPSILON);
-    // EXPECT_NEAR(pickup::math::normalizeAngle(M_PI), -M_PI, EPSILON); // π → -π
+    // 预期边界行为：normalizeAngle(π) -> -π（当前实现未启用该断言）
     EXPECT_NEAR(pickup::math::normalizeAngle(3*M_PI/2), -M_PI/2, EPSILON);
     EXPECT_NEAR(pickup::math::normalizeAngle(-M_PI/2), -M_PI/2, EPSILON);
-    EXPECT_NEAR(pickup::math::normalizeAngle(5*M_PI/2), M_PI/2, EPSILON); // 5π/2 → π/2
-    // EXPECT_NEAR(pickup::math::normalizeAngle(-3*M_PI), -M_PI, EPSILON); // -3π → -π
+    EXPECT_NEAR(pickup::math::normalizeAngle(5*M_PI/2), M_PI/2, EPSILON); // 5π/2 -> π/2
+    // 预期边界行为：normalizeAngle(-3π) -> -π（当前实现未启用该断言）
     EXPECT_NEAR(pickup::math::normalizeAngle(2*M_PI), 0.0, EPSILON);
     EXPECT_NEAR(pickup::math::normalizeAngle(-5*M_PI/2), -M_PI/2, EPSILON);
 }

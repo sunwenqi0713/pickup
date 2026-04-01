@@ -16,8 +16,8 @@ int main() {
   sw.stop();
   std::cout << "Stopwatch stopped." << std::endl;
 
-  std::cout << "Elapsed time in milliseconds: " << sw.elapsed() << " ms" << std::endl;
-  std::cout << "Elapsed time in seconds: " << sw.elapsed<std::chrono::seconds>() << " s" << std::endl;
+  std::cout << "Elapsed time in milliseconds: " << sw.elapsedMs() << " ms" << std::endl;
+  std::cout << "Elapsed time in seconds: " << sw.elapsedSeconds() << " s" << std::endl;
 
   return 0;
 }

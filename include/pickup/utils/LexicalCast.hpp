@@ -14,7 +14,6 @@ namespace utils {
 
 namespace detail {
 
-// helpers
 inline bool iequals(std::string_view a, std::string_view b) {
   if (a.size() != b.size()) return false;
   for (size_t i = 0; i < a.size(); ++i) {
@@ -25,7 +24,6 @@ inline bool iequals(std::string_view a, std::string_view b) {
   return true;
 }
 
-// parsing
 template <typename T>
 std::optional<T> parseInteger(std::string_view sv) {
   static_assert(std::is_integral_v<T> && !std::is_same_v<T, bool>);
@@ -65,18 +63,28 @@ inline std::optional<bool> parseBool(std::string_view sv) {
 
 }  // namespace detail
 
-// lexical_cast
+/**
+ * @brief 类型安全的字面量转换
+ *
+ * 支持：字符串 ↔ 整数/浮点/bool，相同类型直接返回，算术类型 → 字符串。
+ * 转换失败返回 std::nullopt，不抛异常。
+ *
+ * @tparam To   目标类型
+ * @tparam From 源类型
+ * @param from  源值
+ * @return      转换结果，失败时为 std::nullopt
+ */
 template <typename To, typename From>
-std::optional<To> lexical_cast(const From& from) {
-  // same type
+[[nodiscard]] std::optional<To> lexicalCast(const From& from) {
+  /** @brief 相同类型直接返回 */
   if constexpr (std::is_same_v<To, From>) {
     return from;
   }
 
-  // string sources
+  /** @brief 字符串源 → 各目标类型 */
   else if constexpr (std::is_same_v<From, std::string> || std::is_same_v<From, std::string_view> ||
                      std::is_same_v<From, const char*>) {
-    std::string_view sv = std::is_same_v<From, const char*> ? std::string_view(from) : std::string_view(from);
+    std::string_view sv(from);
 
     if constexpr (std::is_same_v<To, std::string>) {
       return std::string(sv);
@@ -89,22 +97,22 @@ std::optional<To> lexical_cast(const From& from) {
     } else if constexpr (std::is_same_v<To, double>) {
       return detail::parseDouble(sv);
     } else {
-      static_assert(!sizeof(To), "Unsupported lexical_cast target type");
+      static_assert(!sizeof(To), "Unsupported lexicalCast target type");
     }
   }
 
-  // arithmetic to string
+  /** @brief 算术类型 → 字符串 */
   else if constexpr (std::is_same_v<To, std::string> && std::is_arithmetic_v<From>) {
     return std::to_string(from);
   }
 
-  // integral to bool
+  /** @brief 整数 → bool */
   else if constexpr (std::is_same_v<To, bool> && std::is_integral_v<From>) {
     return from != 0;
   }
 
   else {
-    static_assert(!sizeof(To), "Unsupported lexical_cast conversion");
+    static_assert(!sizeof(To), "Unsupported lexicalCast conversion");
   }
 }
 

@@ -13,35 +13,33 @@ static const std::string kBase64Chars =
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
 
-/**
- * @brief 判断一个字符是否是有效的base64字符
- * @param c 待测试的字符
- * @return 如果c是有效的base64字符则返回true
- */
+// 判断一个字符是否是有效的 base64 字符
+// c: 待测试的字符
+// 返回值: 如果 c 是有效的 base64 字符则返回 true
 static bool isBase64Char(unsigned char c) {
-  return (c == 43 ||               // +
-          (c >= 47 && c <= 57) ||  // /-9
-          (c >= 65 && c <= 90) ||  // A-Z
-          (c >= 97 && c <= 122));  // a-z
+  return (c == '+' ||
+          (c >= '/' && c <= '9') ||  // /-9
+          (c >= 'A' && c <= 'Z') ||
+          (c >= 'a' && c <= 'z'));
 }
 
 std::string base64Encode(unsigned char const* input, size_t len) {
   std::string ret;
   int i = 0;
   int j = 0;
-  unsigned char charArray3[3];  // 存储3个原始字节
-  unsigned char charArray4[4];  // 存储4个base64编码后的字节
+  unsigned char charArray3[3];  // 存储 3 个原始字节
+  unsigned char charArray4[4];  // 存储 4 个 Base64 编码后的字节
 
   while (len--) {
     charArray3[i++] = *(input++);  // 读取一个字节
-    if (i == 3) {                  // 每攒够3个字节进行一次编码
-      // 编码过程：将3个8位字节转换为4个6位base64字符
+    if (i == 3) {                  // 每攒够 3 个字节进行一次编码
+      // 编码过程：将 3 个 8 位字节转换为 4 个 6 位 Base64 字符
       charArray4[0] = (charArray3[0] & 0xfc) >> 2;
       charArray4[1] = ((charArray3[0] & 0x03) << 4) + ((charArray3[1] & 0xf0) >> 4);
       charArray4[2] = ((charArray3[1] & 0x0f) << 2) + ((charArray3[2] & 0xc0) >> 6);
       charArray4[3] = charArray3[2] & 0x3f;
 
-      // 将6位值映射到base64字符表
+      // 将 6 位值映射到 Base64 字符表
       for (i = 0; i < 4; i++) {
         ret += kBase64Chars[charArray4[i]];
       }
@@ -49,10 +47,10 @@ std::string base64Encode(unsigned char const* input, size_t len) {
     }
   }
 
-  // 处理剩余不足3字节的情况（填充）
+  // 处理剩余不足 3 字节的情况（填充）
   if (i) {
     for (j = i; j < 3; j++) {
-      charArray3[j] = '\0';  // 用0填充不足的字节
+      charArray3[j] = '\0';  // 用 0 填充不足的字节
     }
 
     // 对剩余字节进行编码
@@ -66,7 +64,7 @@ std::string base64Encode(unsigned char const* input, size_t len) {
       ret += kBase64Chars[charArray4[j]];
     }
 
-    // 添加填充字符'='
+    // 添加填充字符 '='
     while (i++ < 3) {
       ret += '=';
     }
@@ -83,17 +81,17 @@ std::string base64Decode(std::string const& input) {
   unsigned char charArray4[4], charArray3[3];   // 解码用缓冲区
   std::string ret;                               // 返回的解码结果
 
-  // 遍历输入字符串（忽略填充字符'='和非base64字符）
+  // 遍历输入字符串（忽略填充 '=' 和非 Base64 字符）
   while (inLen-- && (input[index] != '=') && isBase64Char(input[index])) {
     charArray4[i++] = input[index];
     index++;
-    if (i == 4) {  // 每攒够4个base64字符进行一次解码
-      // 将base64字符转换回6位值
+    if (i == 4) {  // 每攒够 4 个 Base64 字符进行一次解码
+      // 将 Base64 字符转换回 6 位值
       for (i = 0; i < 4; i++) {
         charArray4[i] = static_cast<unsigned char>(kBase64Chars.find(charArray4[i]));
       }
 
-      // 解码过程：将4个6位base64字符转换为3个8位原始字节
+      // 解码过程：将 4 个 6 位 Base64 字符转换为 3 个 8 位原始字节
       charArray3[0] = (charArray4[0] << 2) + ((charArray4[1] & 0x30) >> 4);
       charArray3[1] = ((charArray4[1] & 0xf) << 4) + ((charArray4[2] & 0x3c) >> 2);
       charArray3[2] = ((charArray4[2] & 0x3) << 6) + charArray4[3];
@@ -106,14 +104,14 @@ std::string base64Decode(std::string const& input) {
     }
   }
 
-  // 处理剩余的base64字符（可能包含填充）
+  // 处理剩余 Base64 字符（可能包含填充）
   if (i) {
-    // 用0填充不足的base64字符
+    // 用 0 填充不足的 Base64 字符
     for (j = i; j < 4; j++) {
       charArray4[j] = 0;
     }
 
-    // 将剩余base64字符转换回6位值
+    // 将剩余 Base64 字符转换回 6 位值
     for (j = 0; j < 4; j++) {
       charArray4[j] = static_cast<unsigned char>(kBase64Chars.find(charArray4[j]));
     }
@@ -123,7 +121,7 @@ std::string base64Decode(std::string const& input) {
     charArray3[1] = ((charArray4[1] & 0xf) << 4) + ((charArray4[2] & 0x3c) >> 2);
     charArray3[2] = ((charArray4[2] & 0x3) << 6) + charArray4[3];
 
-    // 添加有效解码字节（忽略填充产生的0字节）
+    // 添加有效解码字节（忽略填充产生的 0 字节）
     for (j = 0; j < i - 1; j++) {
       ret += static_cast<std::string::value_type>(charArray3[j]);
     }
@@ -136,7 +134,7 @@ std::string base64UrlToBase64(const std::string& base64url) {
   std::string temp;
   temp.reserve(base64url.size() + 4);
 
-  // change Base64 alphabet from urlsafe version to standard
+  // 将 URL-safe Base64 字母表转换为标准 Base64
   for (const auto& c : base64url) {
     if (c == '-') {
       temp += '+';
@@ -147,7 +145,7 @@ std::string base64UrlToBase64(const std::string& base64url) {
     }
   }
 
-  // add padding
+  // 添加 padding
   if ((base64url.size() % 4) != 0u) {
     int toAppend = 4 - static_cast<int>(base64url.size() % 4);
     for (int i = 0; i < toAppend; i++) {
@@ -161,11 +159,11 @@ std::string base64UrlToBase64(const std::string& base64url) {
 std::string base64ToBase64Url(const std::string& base64) {
   std::string temp(base64);
 
-  // remove padding
+  // 移除 padding
   size_t found = temp.find_last_not_of('=');
   if (found == std::string::npos) return "";
 
-  // change Base64 alphabet from standard version to urlsafe
+  // 将标准 Base64 字母表转换为 URL-safe Base64
   utils::replaceAll(temp, "+", "-");
   utils::replaceAll(temp, "/", "_");
 

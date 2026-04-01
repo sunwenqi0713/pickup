@@ -80,6 +80,11 @@ endif()
 # Compiler Warnings
 # ============================================================
 
+if(MSVC)
+    # 强制 MSVC 以 UTF-8 编码读写源文件，避免中文注释被 GBK 误解析导致语法错误
+    target_compile_options(${PROJECT_NAME} PUBLIC /utf-8)
+endif()
+
 if(PICKUP_ENABLE_WARNINGS)
     if(MSVC)
         target_compile_options(${PROJECT_NAME} PRIVATE /W4)

@@ -3,79 +3,65 @@
 #include <cstddef>
 #include <cstdint>
 
-/**
- * FIFO 环形缓冲区实现。
- *
- * 该环形缓冲区最多可存储比分配空间少 1 字节的数据，
- * 因为在缓冲区已满时，起始和结束标记必须相隔 1 字节，
- * 否则缓冲区会突然变为空。
- * 此缓冲区不是线程安全的。
- */
-
 namespace pickup {
 namespace utils {
 
+/**
+ * @brief FIFO 环形缓冲区
+ *
+ * 最多可存储比分配空间少 1 字节的数据，因为缓冲区满时
+ * 起始和结束标记必须相隔 1 字节，否则无法区分满/空状态。
+ * 本类非线程安全。
+ */
 class CircularBuffer {
  public:
-  /* @brief 构造函数
-   *
-   * @note 不自动分配内存。
+  /**
+   * @brief 构造函数（不自动分配内存，需显式调用 allocate）
    */
   CircularBuffer() = default;
 
-  /*
-   * @brief 析构函数
-   *
-   * 自动调用 deallocate。
+  /**
+   * @brief 析构函数（自动调用 deallocate）
    */
   ~CircularBuffer();
 
-  /* @brief 分配环形缓冲区
-   *
-   * @param buffer_size 要在堆上分配的字节数。
-   *
-   * @returns 如果分配失败则返回 false。
+  /**
+   * @brief 在堆上分配环形缓冲区
+   * @param buffer_size 要分配的字节数
+   * @return 分配失败返回 false
    */
   bool allocate(size_t buffer_size);
 
-  /*
-   * @brief 释放环形缓冲区
-   *
-   * @note 仅在需要释放并重新分配时才需要调用。
+  /**
+   * @brief 释放环形缓冲区（仅在需要重新分配时才须显式调用）
    */
   void deallocate();
 
-  /*
-   * @brief 可复制数据的可用空间
-   *
-   * @returns 可用字节数。
+  /**
+   * @brief 返回可写入的剩余空间
+   * @return 可用字节数
    */
-  size_t space_available() const;
+  [[nodiscard]] size_t space_available() const;
 
-  /*
-   * @brief 可用于复制的已用空间
-   *
-   * @returns 已使用字节数。
+  /**
+   * @brief 返回已写入的数据量
+   * @return 已使用字节数
    */
-  size_t space_used() const;
+  [[nodiscard]] size_t space_used() const;
 
-  /*
-   * @brief 将数据复制到环形缓冲区
-   *
-   * @param buf 指向要复制的源缓冲区的指针。
-   * @param buf_len 要复制的字节数。
-   *
-   * @returns 如果数据包可以复制到缓冲区则返回 true。
+  /**
+   * @brief 将数据写入环形缓冲区
+   * @param buf     源数据指针
+   * @param buf_len 要写入的字节数
+   * @return 空间足够并成功写入返回 true，否则返回 false
    */
   bool push_back(const uint8_t* buf, size_t buf_len);
 
-  /*
-   * @brief 从环形缓冲区获取数据
-   *
-   * @param buf 指向要复制到的目标缓冲区的指针。
-   * @param max_buf_len 要复制的最大字节数。
-   *
-   * @returns 如果缓冲区为空则返回 0。
+  /**
+   * @brief 从环形缓冲区读取数据
+   * @param buf         目标缓冲区指针
+   * @param max_buf_len 最多读取的字节数
+   * @return 实际读取的字节数，缓冲区为空时返回 0
    */
   size_t pop_front(uint8_t* buf, size_t max_buf_len);
 

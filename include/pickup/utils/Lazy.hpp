@@ -29,7 +29,10 @@ class Lazy {
   /**
    * @brief 获取或创建值
    * @return 值的常量引用
-   * @note 首次调用时通过工厂函数创建，后续调用直接返回缓存值
+   * @note 首次调用时通过工厂函数创建，后续调用直接返回缓存值。
+   *       创建完成后工厂函数会被清空以释放其捕获的资源；
+   *       此后调用 setFactory() 无法触发重新创建，新工厂不会被执行。
+   *       若需重置，请销毁并重建 Lazy<T> 对象。
    */
   const T& getOrCreate() {
     std::lock_guard<std::mutex> guard(mutex_);
@@ -61,6 +64,8 @@ class Lazy {
   /**
    * @brief 设置新的工厂函数
    * @param factory 新的工厂函数
+   * @warning 若值已通过 getOrCreate() 创建，此调用无效——
+   *          工厂不会再被执行。仅在首次 getOrCreate() 前调用有意义。
    */
   void setFactory(Factory&& factory) {
     std::lock_guard<std::mutex> guard(mutex_);

@@ -7,7 +7,6 @@ namespace pickup {
 namespace thread {
 
 /**
- * @class Semaphore
  * @brief 信号量类，用于线程间同步控制
  *
  * 通过计数器机制控制资源访问，提供PV原子操作（wait/signal）。
@@ -23,12 +22,12 @@ class Semaphore {
   Semaphore(int count = 0) : count_(count) {}
 
   /**
-   * @brief P操作（wait），请求获取资源
+   * @brief V操作（signal），释放资源
    *
-   * - 若计数器值 > 0，立即减少计数器并继续执行
-   * - 若计数器值 = 0，阻塞线程直至其他线程调用signal()
+   * - 增加计数器值
+   * - 唤醒一个正在等待的线程（如果有）
    *
-   * @warning 可能引发死锁（如多个线程循环等待时）
+   * @note 总是立即返回，不会阻塞调用线程
    */
   void release() {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -37,12 +36,12 @@ class Semaphore {
   }
 
   /**
-   * @brief V操作（signal），释放资源
+   * @brief P操作（wait），请求获取资源
    *
-   * - 增加计数器值
-   * - 唤醒一个正在等待的线程（如果有）
+   * - 若计数器值 > 0，立即减少计数器并继续执行
+   * - 若计数器值 = 0，阻塞线程直至其他线程调用release()
    *
-   * @note 总是立即返回，不会阻塞调用线程
+   * @warning 可能引发死锁（如多个线程循环等待时）
    */
   void acquire() {
     std::unique_lock<std::mutex> lock(mutex_);
