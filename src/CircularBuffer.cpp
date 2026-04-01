@@ -1,7 +1,7 @@
-﻿#include "pickup/utils/CircularBuffer.h"
+#include "pickup/utils/CircularBuffer.h"
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <algorithm>
 
 namespace pickup {
@@ -13,7 +13,7 @@ bool CircularBuffer::allocate(size_t buffer_size) {
   assert(buffer_ == nullptr);
 
   size_ = buffer_size;
-  buffer_ = new uint8_t[size_];
+  buffer_ = new (std::nothrow) uint8_t[size_];
   return buffer_ != nullptr;
 }
 
@@ -46,14 +46,13 @@ size_t CircularBuffer::space_used() const {
 
 bool CircularBuffer::push_back(const uint8_t* buf, size_t buf_len) {
   if (buf_len == 0 || buf == nullptr) {
-    // 无数据可添加，最好不执行操作
+    // 无数据可添加，直接返回 false
     return false;
   }
 
   if (start_ > end_) {
-    // 在end_后添加数据直到start_前，无回绕
-    // 预留一个字节空间，避免start_与end_相等
-    // 这表示缓冲区为空
+    // 在 end_ 后添加数据直到 start_ 前，无回绕
+    // 预留一个字节空间，避免 start_ 与 end_ 相等（空缓冲区判定）
     const size_t available = start_ - end_ - 1;
 
     if (available < buf_len) {
@@ -64,7 +63,7 @@ bool CircularBuffer::push_back(const uint8_t* buf, size_t buf_len) {
     end_ += buf_len;
 
   } else {
-    // 在end_后添加数据，可能发生回绕
+    // 在 end_ 后添加数据，可能发生回绕
     const size_t available = start_ - end_ - 1 + size_;
 
     if (available < buf_len) {
@@ -91,7 +90,7 @@ bool CircularBuffer::push_back(const uint8_t* buf, size_t buf_len) {
 
 size_t CircularBuffer::pop_front(uint8_t* buf, size_t buf_max_len) {
   if (buf == nullptr) {
-    // 用户必须提供有效的指针
+    // 用户必须提供有效的输出指针
     return 0;
   }
 

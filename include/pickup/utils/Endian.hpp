@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -11,7 +12,7 @@
 namespace pickup {
 namespace utils {
 
-// 字节序检测和转换
+/** @brief 字节序检测和转换 */
 
 /**
  * @brief   字节序类型枚举
@@ -28,12 +29,9 @@ enum class Endian {
  * @return  系统字节序
  */
 constexpr Endian system_endian() noexcept {
-  constexpr uint32_t test_value = 0x01020304;
-  constexpr uint8_t first_byte = static_cast<const uint8_t*>(static_cast<const void*>(&test_value))[0];
-
-  if constexpr (first_byte == 0x01) {
+  if constexpr (std::endian::native == std::endian::big) {
     return Endian::Big;
-  } else if constexpr (first_byte == 0x04) {
+  } else if constexpr (std::endian::native == std::endian::little) {
     return Endian::Little;
   } else {
     return Endian::Unknown;
@@ -87,7 +85,7 @@ inline T network_to_host(T value) noexcept {
   return host_to_network(value);  // 转换是对称的
 }
 
-// 传统命名别名
+/** @brief 传统命名别名 */
 template <typename T>
 inline T hton(T value) noexcept {
   return host_to_network(value);
@@ -98,7 +96,7 @@ inline T ntoh(T value) noexcept {
   return network_to_host(value);
 }
 
-// 带类型的别名
+/** @brief 带类型的别名 */
 inline uint16_t htons(uint16_t value) noexcept { return host_to_network(value); }
 inline uint32_t htonl(uint32_t value) noexcept { return host_to_network(value); }
 inline uint64_t htonll(uint64_t value) noexcept { return host_to_network(value); }
@@ -107,7 +105,7 @@ inline uint16_t ntohs(uint16_t value) noexcept { return network_to_host(value); 
 inline uint32_t ntohl(uint32_t value) noexcept { return network_to_host(value); }
 inline uint64_t ntohll(uint64_t value) noexcept { return network_to_host(value); }
 
-// 批量转换函数
+/** @brief 批量转换函数 */
 
 /**
  * @brief   批量转换字节序（原地）

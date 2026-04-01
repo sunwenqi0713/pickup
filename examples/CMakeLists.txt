@@ -12,6 +12,10 @@ endfunction()
 function(add_header_only_example name)
     add_executable(${name} ${name}.cpp)
     target_include_directories(${name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    # 确保 MSVC 以 UTF-8 解析含中文注释的头文件
+    if(MSVC)
+        target_compile_options(${name} PRIVATE /utf-8)
+    endif()
 endfunction()
 
 # Header-only examples

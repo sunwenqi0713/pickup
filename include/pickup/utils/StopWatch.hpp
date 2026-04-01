@@ -35,8 +35,8 @@ class StopWatchGeneric {
    * @brief 秒表初始状态
    */
   enum Mode {
-    Stopped = 0, /**< 初始为停止状态 */
-    Started = 1, /**< 构造时立即开始计时 */
+    Stopped = 0,  ///< 初始为停止状态
+    Started = 1,  ///< 构造时立即开始计时
   };
 
   /**
@@ -51,7 +51,7 @@ class StopWatchGeneric {
    * @note
    * 该构造函数被设计为可隐式调用，用于简化测试代码书写
    */
-  // NOLINTNEXTLINE(google-explicit-constructor)
+  /** @brief NOLINTNEXTLINE(google-explicit-constructor) */
   constexpr StopWatchGeneric(const Mode startMode = StopWatchGeneric::Stopped) {
     if (startMode == Started) {
       startingTime_ = now();
@@ -179,9 +179,9 @@ class StopWatchGeneric {
    */
   static TimePoint now() noexcept { return Clock::now(); }
 
-  Duration elapsedTotal_{};  /**< 已累计的总耗时 */
-  TimePoint startingTime_{}; /**< 最近一次启动的时间点 */
-  bool running_ = false;     /**< 当前是否处于运行状态 */
+  Duration elapsedTotal_{};   ///<  已累计的总耗时
+  TimePoint startingTime_{};  ///<  最近一次启动的时间点
+  bool running_ = false;      ///<  当前是否处于运行状态
 };
 
 /**

@@ -1,6 +1,6 @@
 #pragma once
 
-// 操作系统检测
+/** @brief 操作系统检测 */
 #if defined(_WIN32) || defined(__CYGWIN__)
 #define PICKUP_WIN_OS
 #elif defined(__APPLE__) || defined(__MACH__)
@@ -13,9 +13,9 @@
 #define PICKUP_UNIX_OS
 #endif
 
-// 编译器检测
+/** @brief 编译器检测 */
 #if defined(__MINGW32__)
-// 在Windows环境下单独标记MinGW编译器
+/** @brief 在 Windows 环境下单独标记 MinGW 编译器 */
 #define PICKUP_MINGW_COMPILER
 #elif defined(__clang__)
 #define PICKUP_CLANG_COMPILER
@@ -25,14 +25,14 @@
 #define PICKUP_MSVC_COMPILER
 #endif
 
-// 调试模式
+/** @brief 调试模式 */
 #if !defined(NDEBUG) || defined(_DEBUG)
 #define PICKUP_DEBUG_MODE
 #endif
 
-// 导出/导入API
+/** @brief 导出/导入 API */
 #if defined(PICKUP_WIN_OS)
-/* Windows平台使用标准dllexport/dllimport */
+/** @brief Windows 平台使用标准 dllexport/dllimport */
 #if defined(PICKUP_EXPORT_API)
 #define PICKUP_API __declspec(dllexport)
 #elif defined(PICKUP_IMPORT_API)
@@ -40,11 +40,11 @@
 #endif
 #elif (defined(PICKUP_EXPORT_API) || defined(PICKUP_IMPORT_API)) && \
     (defined(PICKUP_CLANG_COMPILER) || defined(PICKUP_GCC_COMPILER))
-/* 类Unix平台使用GCC/Clang的visibility属性 */
+/** @brief 类 Unix 平台使用 GCC/Clang 的 visibility 属性 */
 #define PICKUP_API __attribute__((visibility("default")))
 #endif
 
-// 确保未定义时置空
+/** @brief 确保未定义时置空 */
 #ifndef PICKUP_API
 #define PICKUP_API
 #endif

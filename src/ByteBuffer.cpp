@@ -18,16 +18,30 @@ static ByteBuffer::Byte* allocateBuffer(size_t size) {
       malloc(sizeof(ByteBuffer::Byte) * size));  // NOLINT(cppcoreguidelines-no-malloc)
 }
 
-// 计算下一个2的幂
-static unsigned long nextPowerOfTwo(unsigned long v) {
+// 计算下一个 2 的幂
+static size_t nextPowerOfTwo(size_t v) {
   v--;
   v |= v >> 1;
   v |= v >> 2;
   v |= v >> 4;
   v |= v >> 8;
   v |= v >> 16;
+  if constexpr (sizeof(size_t) > 4) {
+    v |= v >> 32;
+  }
   v++;
   return v;
+}
+
+// 根据所需大小计算增长后的容量：
+//   小 buffer（< 4 MB）：取 2 的幂，减少频繁重分配；
+//   大 buffer（>= 4 MB）：取 1.5 倍，避免翻倍导致的过度分配。
+static size_t growCapacity(size_t needed) noexcept {
+  constexpr size_t kLargeBufferThreshold = 4u * 1024u * 1024u;
+  if (needed < kLargeBufferThreshold) {
+    return std::max(nextPowerOfTwo(needed), kMinAllocationSize);
+  }
+  return std::max(needed + needed / 2u, kMinAllocationSize);
 }
 
 ByteBuffer::ByteBuffer() = default;
@@ -119,7 +133,7 @@ ByteBuffer::Byte* ByteBuffer::appendWritable(size_t size) {
 
   auto nextSize = size_ + size;
   if (nextSize > capacity_) {
-    reallocate(std::max(static_cast<size_t>(nextPowerOfTwo(static_cast<unsigned long>(nextSize))), kMinAllocationSize));
+    reallocate(growCapacity(nextSize));
   }
 
   auto* ptr = data_ + size_;

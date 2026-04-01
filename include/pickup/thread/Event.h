@@ -23,8 +23,8 @@ namespace thread {
  */
 class Event {
  public:
-  static constexpr int64_t TIMEOUT_INFINITE = -1;  // 无限等待超时值，调用 wait 时将阻塞直到事件被触发
-  static constexpr int64_t TIMEOUT_IMMEDIATE = 0;  // 立即返回超时值，调用 wait 时将立即返回当前事件状态
+  static constexpr int64_t TIMEOUT_INFINITE = -1;   ///<  传入 wait() 时无限阻塞直到事件被触发
+  static constexpr int64_t TIMEOUT_IMMEDIATE = 0;   ///<  传入 wait() 时立即返回当前事件状态
 
   /**
    * @brief 构造事件对象

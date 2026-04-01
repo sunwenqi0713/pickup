@@ -33,17 +33,17 @@ long getThreadID() {
 
 void setThreadName(const std::string& name) {
 #if defined(PR_SET_NAME)
-  // 仅使用前15个字符（16 - NUL终止符）
-  // Linux系统使用prctl系统调用
+  // 仅使用前 15 个字符（16 - NUL 终止符）
+  // Linux 系统使用 prctl 系统调用
   ::prctl(PR_SET_NAME, name.c_str(), 0, 0, 0);
 #elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
-  // BSD系列系统使用pthread_set_name_np
+  // BSD 系列系统使用 pthread_set_name_np
   pthread_set_name_np(pthread_self(), name.c_str());
 #elif defined(__APPLE__)
-  // macOS系统使用pthread_setname_np
+  // macOS 系统使用 pthread_setname_np
   pthread_setname_np(name.c_str());
 #else
-  // 不支持的平台，静默忽略以避免未使用参数警告
+  // 不支持的平台静默忽略，避免未使用参数告警
   (void)name;
 #endif
 }

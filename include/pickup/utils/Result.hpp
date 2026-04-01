@@ -6,114 +6,63 @@ namespace pickup {
 namespace utils {
 
 /**
- * 表示操作结果的模板类。包含状态值和返回的值。
- * 提供类型安全的错误处理和值返回。
+ * @brief 携带状态码和返回值的操作结果模板类
  *
- * @tparam T 状态类型，通常为枚举类型
- * @tparam E 返回值类型，当操作成功时包含有效值
+ * @tparam Status 状态类型，通常为枚举。**约定：Status{} （零值/默认构造）表示成功**，
+ *                其余值表示各种错误码。使用整数或枚举时须确保 0 映射到成功状态。
+ * @tparam Value  返回值类型，操作成功时包含有效值；失败时值为默认初始化，不应访问。
+ *
+ * 示例：
+ * @code
+ * enum class StatusCode { Ok = 0, NotFound, IoError };
+ * Result<StatusCode, std::string> r(StatusCode::Ok, "hello");
+ * if (r.isSuccess()) use(r.value());
+ * @endcode
  */
-template <typename T, typename E>
+template <typename Status, typename Value>
 class Result {
-public:
-    /**
-     * 使用状态和值构造Result对象（完美转发）
-     *
-     * @param status 操作状态
-     * @param value 返回值，将使用完美转发构造
-     */
-    template <typename ValueType>
-    inline Result(T status, ValueType&& value);
-    
-    /**
-     * 仅使用状态构造Result对象（失败情况）
-     *
-     * @param status 操作状态
-     */
-    inline explicit Result(T status);
-    
-    /**
-     * 获取操作状态
-     *
-     * @return 操作状态
-     */
-    inline T status() const;
-    
-    /**
-     * 检查操作是否成功
-     *
-     * @return 如果状态表示成功则返回true
-     */
-    inline bool isSuccess() const;
-    
-    /**
-     * 获取返回值的引用（仅当操作成功时安全）
-     *
-     * @return 返回值的引用
-     */
-    inline E& value();
-    
-    /**
-     * 获取返回值的常量引用（仅当操作成功时安全）
-     *
-     * @return 返回值的常量引用
-     */
-    inline const E& value() const;
-    
-    /**
-     * 安全获取返回值，失败时返回默认值
-     *
-     * @param defaultValue 失败时返回的默认值
-     * @return 成功时返回值，失败时返回默认值
-     */
-    template <typename DefaultType>
-    inline E valueOr(DefaultType&& defaultValue) const;
+ public:
+  /**
+   * @brief 用状态和值构造（完美转发）
+   * @param status 操作状态
+   * @param value  返回值
+   */
+  template <typename ValueType>
+  Result(Status status, ValueType&& value)
+      : status_{status}, value_{std::forward<ValueType>(value)} {}
 
-private:
-    /// 操作状态
-    T status_;
-    
-    /// 返回值（可能无效，取决于状态）
-    E value_;
+  /**
+   * @brief 仅用状态构造（失败情况，value 默认初始化）
+   * @param status 操作状态
+   */
+  explicit Result(Status status) : status_{status}, value_{} {}
+
+  /** @brief 返回操作状态 */
+  [[nodiscard]] Status status() const { return status_; }
+
+  /** @brief 若状态等于 Status{} 则视为成功，返回 true */
+  [[nodiscard]] bool isSuccess() const { return status_ == Status{}; }
+
+  /** @brief 返回返回值的引用（仅在成功时安全调用） */
+  [[nodiscard]] Value& value() { return value_; }
+
+  /** @brief 返回返回值的常量引用（仅在成功时安全调用） */
+  [[nodiscard]] const Value& value() const { return value_; }
+
+  /**
+   * @brief 安全获取返回值，失败时返回默认值
+   * @param defaultValue 失败时返回的默认值
+   * @return 成功时返回 value()，失败时返回 defaultValue
+   */
+  template <typename DefaultType>
+  [[nodiscard]] Value valueOr(DefaultType&& defaultValue) const {
+    return isSuccess() ? value_ : static_cast<Value>(std::forward<DefaultType>(defaultValue));
+  }
+
+ private:
+  Status status_;  ///< 操作状态
+  Value value_;    ///< 返回值（仅状态成功时有效）
 };
-
-template <typename T, typename E>
-template <typename ValueType>
-Result<T, E>::Result(T status, ValueType&& value) 
-    : status_{status}, value_{std::forward<ValueType>(value)} {
-}
-
-template <typename T, typename E>
-Result<T, E>::Result(T status) 
-    : status_{status}, value_{} {
-}
-
-template <typename T, typename E>
-T Result<T, E>::status() const {
-    return status_;
-}
-
-template <typename T, typename E>
-bool Result<T, E>::isSuccess() const {
-    // 假设状态0表示成功（适用于大多数枚举）
-    // 在实际使用中，可以根据需要特化此方法
-    return status_ == T{};
-}
-
-template <typename T, typename E>
-E& Result<T, E>::value() {
-    return value_;
-}
-
-template <typename T, typename E>
-const E& Result<T, E>::value() const {
-    return value_;
-}
-
-template <typename T, typename E>
-template <typename DefaultType>
-E Result<T, E>::valueOr(DefaultType&& defaultValue) const {
-    return isSuccess() ? value_ : static_cast<E>(std::forward<DefaultType>(defaultValue));
-}
 
 }  // namespace utils
 }  // namespace pickup

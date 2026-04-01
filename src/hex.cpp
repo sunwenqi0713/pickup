@@ -1,7 +1,6 @@
 #include "pickup/codec/hex.h"
 
 #include <array>
-#include <iostream>
 
 namespace pickup {
 namespace codec {
@@ -11,13 +10,13 @@ std::string encode(const uint8_t* data, size_t len, bool uppercase) {
   const char* hex_table = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 
   std::string hex_str;
-  hex_str.reserve(len * 2);  // 预分配空间，每个字节对应2个字符
+  hex_str.reserve(len * 2);  // 预分配空间，每个字节对应 2 个字符
 
   for (size_t i = 0; i < len; ++i) {
     uint8_t byte = data[i];
-    // 将高4位和低4位分别转换为十六进制字符
-    hex_str.push_back(hex_table[(byte >> 4) & 0x0F]);  // 高4位
-    hex_str.push_back(hex_table[byte & 0x0F]);         // 低4位
+    // 将高 4 位和低 4 位分别转换为十六进制字符
+    hex_str.push_back(hex_table[(byte >> 4) & 0x0F]);  // 高 4 位
+    hex_str.push_back(hex_table[byte & 0x0F]);         // 低 4 位
   }
 
   return hex_str;
@@ -29,18 +28,18 @@ std::string encodeWithSeparator(const uint8_t* data, size_t len, bool uppercase,
   std::string hex_str;
   if (len == 0) return hex_str;
 
-  // 预计算内存：每个字节2字符 + 分隔符
+  // 预计算内存：每个字节 2 字符 + 分隔符
   size_t total_len = len * 2;
   if (separator != '\0') {
-    total_len += (len - 1);  // 分隔符数量为 len-1
+    total_len += (len - 1);  // 分隔符数量为 len - 1
   }
   hex_str.reserve(total_len);
 
   // 逐个字节处理
   for (size_t i = 0; i < len; ++i) {
     uint8_t byte = data[i];
-    hex_str.push_back(hex_table[(byte >> 4) & 0x0F]);  // 高4位
-    hex_str.push_back(hex_table[byte & 0x0F]);         // 低4位
+    hex_str.push_back(hex_table[(byte >> 4) & 0x0F]);  // 高 4 位
+    hex_str.push_back(hex_table[byte & 0x0F]);         // 低 4 位
 
     // 添加分隔符（最后一个字节不添加）
     if (separator != '\0' && i != len - 1) {
@@ -54,18 +53,17 @@ std::string encodeWithSeparator(const uint8_t* data, size_t len, bool uppercase,
 std::optional<std::vector<uint8_t>> decode(const std::string& input) {
   // 验证输入有效性
   if (input.length() % 2 != 0) {
-    std::cerr << "Invalid hex string length: " << input.length() << ", hex string length must be even." << std::endl;
     return std::nullopt;
   }
 
-  // 构建反向映射表（字符 -> 4位值）
+  // 构建反向映射表（字符 -> 4 位值）
   std::vector<uint8_t> lookup(256, 0xFF);  // 初始化为无效值
   for (int i = 0; i < 10; ++i) {
-    lookup['0' + i] = i;  // 数字0-9
+    lookup['0' + i] = i;  // 数字 0-9
   }
   for (int i = 0; i < 6; ++i) {
-    lookup['A' + i] = 10 + i;  // 大写A-F
-    lookup['a' + i] = 10 + i;  // 小写a-f
+    lookup['A' + i] = 10 + i;  // 大写 A-F
+    lookup['a' + i] = 10 + i;  // 小写 a-f
   }
 
   std::vector<uint8_t> bytes;
@@ -77,11 +75,10 @@ std::optional<std::vector<uint8_t>> decode(const std::string& input) {
     uint8_t low_nibble = lookup[static_cast<uint8_t>(input[i + 1])];
 
     if (high_nibble == 0xFF || low_nibble == 0xFF) {
-      std::cerr << "Invalid hex character: " << input[i] << " or " << input[i + 1] << std::endl;
       return std::nullopt;
     }
 
-    // 组合高4位和低4位
+    // 组合高 4 位和低 4 位
     bytes.push_back((high_nibble << 4) | low_nibble);
   }
 
@@ -111,8 +108,7 @@ std::string toHex(uint8_t value, bool uppercase) {
 std::string toHex(uint16_t value, bool uppercase) {
   std::array<uint8_t, 2> data;
 
-  // This is explicitly done for performance reasons
-  // using std::stringstream with std::hex is ~3 orders of magnitude slower.
+  // 出于性能原因，不使用 stringstream + std::hex
   data[1] = (value & 0x00FF);
   data[0] = (value & 0xFF00) >> 8;
 
@@ -122,8 +118,7 @@ std::string toHex(uint16_t value, bool uppercase) {
 std::string toHex(uint32_t value, bool uppercase) {
   std::array<uint8_t, 4> data;
 
-  // This is explicitly done for performance reasons
-  // using std::stringstream with std::hex is ~3 orders of magnitude slower
+  // 出于性能原因，不使用 stringstream + std::hex
   data[3] = (value & 0x000000FF);
   data[2] = (value & 0x0000FF00) >> 8;
   data[1] = (value & 0x00FF0000) >> 16;
@@ -135,7 +130,7 @@ std::string toHex(uint32_t value, bool uppercase) {
 std::string toHex(uint64_t value, bool uppercase) {
   std::array<uint8_t, 8> data;
 
-  // This is explicitly done for performance reasons
+  // 出于性能原因，不使用 stringstream + std::hex
   data[7] = (value & 0x00000000000000FF);
   data[6] = (value & 0x000000000000FF00) >> 8;
   data[5] = (value & 0x0000000000FF0000) >> 16;

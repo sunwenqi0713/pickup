@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <string>
 
@@ -70,19 +71,19 @@ class Component {
    */
   virtual bool stop() { return true; }
 
-  /// 获取组件名称
+  /** @brief 获取组件名称 */
   const std::string& name() const { return name_; }
 
-  /// 检查组件是否正在运行
-  bool isRunning() const { return running_; }
+  /** @brief 检查组件是否正在运行 */
+  bool isRunning() const { return running_.load(); }
 
  protected:
   friend class Application;
-  void setRunning(bool running) { running_ = running; }
+  void setRunning(bool running) { running_.store(running); }
 
  private:
   std::string name_;
-  bool running_{false};
+  std::atomic<bool> running_{false};
 };
 
 }  // namespace application

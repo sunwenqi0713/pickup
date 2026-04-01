@@ -1,37 +1,41 @@
 #pragma once
 
-#include <bitset>
-#include <iostream>
+#include <cstddef>
 
 namespace pickup {
 namespace utils {
 
+/**
+ * @brief 位操作工具，封装对整数类型的位级读写
+ * @tparam T 底层整数类型（如 uint8_t、uint32_t 等）
+ */
 template <typename T>
 class BitOperator {
  public:
-  BitOperator(T initialValue = 0) : data_(initialValue) {}
+  /** @brief 构造，默认初始值为 0 */
+  explicit BitOperator(T initialValue = 0) noexcept : data_(initialValue) {}
+
   ~BitOperator() = default;
 
-  // 设置特定位为1
-  void setBit(size_t position) { data_ |= (static_cast<T>(1) << position); }
+  /** @brief 将指定位置的位设为 1 */
+  void setBit(size_t position) noexcept { data_ |= (static_cast<T>(1) << position); }
 
-  // 清除特定位（设置为0）
-  void clearBit(size_t position) { data_ &= ~(static_cast<T>(1) << position); }
+  /** @brief 将指定位置的位清为 0 */
+  void clearBit(size_t position) noexcept { data_ &= ~(static_cast<T>(1) << position); }
 
-  // 取反特定位
-  void toggleBit(size_t position) { data_ ^= (static_cast<T>(1) << position); }
+  /** @brief 将指定位置的位取反 */
+  void toggleBit(size_t position) noexcept { data_ ^= (static_cast<T>(1) << position); }
 
-  // 检查特定位是否为1
-  bool checkBit(size_t position) const { return (data_ & (static_cast<T>(1) << position)) != 0; }
+  /** @brief 检查指定位置的位是否为 1 */
+  [[nodiscard]] bool checkBit(size_t position) const noexcept {
+    return (data_ & (static_cast<T>(1) << position)) != 0;
+  }
 
-  // 获取当前数据值
-  T getValue() const { return data_; }
+  /** @brief 返回当前存储的整数值 */
+  [[nodiscard]] T getValue() const noexcept { return data_; }
 
-  // 设置当前数据值
-  void setValue(T newValue) { data_ = newValue; }
-
-  // 打印二进制表示
-  void print() const { std::cout << "Binary: " << std::bitset<sizeof(T) * 8>(data_) << std::endl; }
+  /** @brief 设置整数值 */
+  void setValue(T newValue) noexcept { data_ = newValue; }
 
  private:
   T data_;  ///< 存储位操作的数据

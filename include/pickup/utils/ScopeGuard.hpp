@@ -12,7 +12,7 @@ namespace utils {
  * @code
  * void foo() {
  *   int* p = new int(42);
- *   auto guard = make_guard([&]() { delete p; });
+ *   auto guard = makeGuard([&]() { delete p; });
  *   // ... 使用 p ...
  * }  // 自动调用 delete p
  * @endcode
@@ -31,8 +31,8 @@ class ScopeGuard final {
     }
   }
 
-  /// 释放守卫，不再执行清理函数
-  void release() { execute_ = false; }
+  /** @brief 释放守卫，不再执行清理函数 */
+  void release() noexcept { execute_ = false; }
 
   ScopeGuard(const ScopeGuard&) = delete;
   ScopeGuard& operator=(const ScopeGuard&) = delete;
@@ -49,14 +49,14 @@ class ScopeGuard final {
  * @return ScopeGuard 对象
  */
 template <typename F>
-ScopeGuard<F> make_guard(F&& f) {
+[[nodiscard]] ScopeGuard<F> makeGuard(F&& f) {
   return ScopeGuard<F>(std::forward<F>(f));
 }
 
 }  // namespace utils
 }  // namespace pickup
 
-// 便利宏
+/** @brief 便利宏 */
 #define CONCAT_IMPL(a, b) a##b
 #define CONCAT(a, b) CONCAT_IMPL(a, b)
 
@@ -68,7 +68,7 @@ ScopeGuard<F> make_guard(F&& f) {
  *   SCOPE_GUARD([&]() { delete ptr; });
  *   SCOPE_GUARD([&]() { fclose(file); });
  */
-#define SCOPE_GUARD(cleanup_expr) auto CONCAT(scope_guard_, __LINE__) = pickup::utils::make_guard(cleanup_expr)
+#define SCOPE_GUARD(cleanup_expr) auto CONCAT(scope_guard_, __LINE__) = pickup::utils::makeGuard(cleanup_expr)
 
 /**
  * @brief 创建具名作用域保护对象，可通过名称释放
@@ -80,4 +80,4 @@ ScopeGuard<F> make_guard(F&& f) {
  *   // ... 某些条件下提前释放
  *   guard.release();
  */
-#define NAMED_SCOPE_GUARD(name, cleanup_expr) auto name = pickup::utils::make_guard(cleanup_expr)
+#define NAMED_SCOPE_GUARD(name, cleanup_expr) auto name = pickup::utils::makeGuard(cleanup_expr)

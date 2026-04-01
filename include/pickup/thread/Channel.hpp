@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -83,12 +84,12 @@ class Channel {
     std::unique_lock<std::mutex> lock(mutex_);
     if (closed_) return false;
 
-    if (queue_.empty()) {
-      auto status = cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs));
-      if (status == std::cv_status::timeout || queue_.empty()) return false;
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+    while (queue_.empty() && !closed_) {
+      if (cv_.wait_until(lock, deadline) == std::cv_status::timeout) return false;
     }
 
-    if (!closed_) {
+    if (!closed_ && !queue_.empty()) {
       std::swap(sentValue, queue_.front());
       queue_.pop();
       return true;

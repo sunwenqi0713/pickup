@@ -4,7 +4,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
+#include <string>
 #include <vector>
 
 #include "pickup/application/Component.h"
@@ -45,21 +45,18 @@ class Application {
   std::shared_ptr<T> addComponent(const std::string& name, Args&&... args) {
     static_assert(std::is_base_of<Component, T>::value, "T must be derived from Component");
 
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (componentMap_.find(name) != componentMap_.end()) {
-      return nullptr;  // 名称已存在
-    }
-
     auto component = std::make_shared<T>(name, std::forward<Args>(args)...);
 
+    /** @brief initialize() 在锁外调用，避免持锁执行耗时操作或回调导致死锁 */
     if (!component->initialize()) {
-      return nullptr;  // 初始化失败
+      return nullptr;
     }
 
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (findComponent(name) != nullptr) {
+      return nullptr;  // 名称已存在
+    }
     components_.push_back(component);
-    componentMap_[name] = component;
-
     return component;
   }
 
@@ -70,25 +67,18 @@ class Application {
    * @return 成功返回组件指针，未找到返回 nullptr
    */
   template <typename T>
-  std::shared_ptr<T> getComponent(const std::string& name) {
+  std::shared_ptr<T> getComponent(const std::string& name) const {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto it = componentMap_.find(name);
-    if (it == componentMap_.end()) {
-      return nullptr;
-    }
-    return std::dynamic_pointer_cast<T>(it->second);
+    return std::dynamic_pointer_cast<T>(findComponent(name));
   }
 
   /**
    * @brief 检查组件是否存在
-   * @param name 组件名称
-   * @return 存在返回 true，否则返回 false
    */
   bool hasComponent(const std::string& name) const;
 
   /**
    * @brief 获取组件数量
-   * @return 组件数量
    */
   size_t componentCount() const;
 
@@ -99,25 +89,37 @@ class Application {
   bool start();
 
   /**
-   * @brief 停止应用
+   * @brief 停止应用并释放所有组件资源（幂等，可安全多次调用）
+   *
+   * 反向停止所有组件，等同于完整的清理流程。
+   * 析构函数会自动调用本函数。
    */
   void stop();
 
   /**
    * @brief 运行应用（阻塞直到退出）
    * @return 退出码（0 表示正常退出）
+   *
+   * 等价于 start() + 等待退出信号 + stop()。
+   * 推荐在 main() 中使用此函数。
    */
   int run();
 
   /**
-   * @brief 请求退出应用
+   * @brief 发送退出信号（异步，不阻塞）
+   *
+   * 仅通知 run() 中的等待循环退出，不直接停止组件。
+   * 实际清理由 run() 在收到信号后调用 stop() 完成。
+   * 可安全地从信号处理函数或其他线程调用。
+   *
+   * @note 若未通过 run() 运行应用，请直接调用 stop()。
    */
   void quit();
 
-  /// 获取运行状态
-  bool isRunning() const { return running_; }
+  /** @brief 获取运行状态 */
+  bool isRunning() const { return running_.load(); }
 
-  /// 获取应用名称
+  /** @brief 获取应用名称 */
   const std::string& name() const { return name_; }
 
  private:
@@ -125,16 +127,19 @@ class Application {
   void stopComponents();
   void waitForShutdown();
 
+  /** @brief 按名称查找组件（调用方须持有 mutex_） */
+  Component::Ptr findComponent(const std::string& name) const;
+
  private:
   std::string name_;
   std::atomic<bool> running_{false};
   std::atomic<bool> started_{false};
 
   std::vector<Component::Ptr> components_;
-  std::unordered_map<std::string, Component::Ptr> componentMap_;
 
-  mutable std::mutex mutex_;
-  std::condition_variable shutdownCv_;
+  mutable std::mutex mutex_;           ///< 保护 components_ 列表
+  mutable std::mutex shutdownMutex_;   ///< 保护 shutdown 信号，与 mutex_ 分离
+  std::condition_variable shutdownCv_; ///< 与 shutdownMutex_ 配合使用
 
   SignalHandler& signalHandler_;
 };

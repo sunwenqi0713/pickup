@@ -10,7 +10,7 @@ bool Event::wait(int64_t timeoutMs) {
 
   if (!triggered_) {
     if (timeoutMs == Event::TIMEOUT_IMMEDIATE) {
-      cv_.wait(lock, [this] { return triggered_ == true; });
+      return false;  // 立即返回，不阻塞
     } else {
       std::chrono::milliseconds period(timeoutMs);
       if (!cv_.wait_for(lock, period, [this] { return triggered_ == true; })) {
