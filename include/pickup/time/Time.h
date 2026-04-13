@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <string>
@@ -15,16 +14,22 @@ class Timespan;
  *
  * 内部以毫秒精度存储，自 Unix epoch（UTC 1970-01-01 00:00:00）起算。
  *
+ * 时区说明：字段分解（getYear/getMonth/... 及 toBrokenDown）均使用本地时区。
+ * month 字段遵循 std::tm 惯例，范围为 0–11（0=一月）。
+ *
  * @see Timespan
  */
 class Time {
  public:
   /**
-   * 一次性分解的本地时间字段（避免多次调用 getXxx() 产生多次 localtime_r）
+   * 一次性分解的本地时间字段
+   *
+   * 当需要多个字段时，通过 toBrokenDown() 获取，比逐个调用 getXxx() 高效。
+   * month 范围 0–11（与 std::tm 一致）。
    */
   struct BrokenDownTime {
     int year;         ///< 4 位年份，如 2024
-    int month;        ///< 0–11
+    int month;        ///< 0–11（0 = 一月）
     int day;          ///< 1–31
     int hours;        ///< 0–23
     int minutes;      ///< 0–59
@@ -47,13 +52,13 @@ class Time {
    * 从日期/时间组件构造
    *
    * @param year         4 位年份
-   * @param month        0–11
+   * @param month        0–11（0 = 一月）
    * @param day          1–31
    * @param hours        0–23
    * @param minutes      0–59
    * @param seconds      0–59
    * @param milliseconds 0–999
-   * @param useLocalTime true = 本地时区，false = UTC
+   * @param useLocalTime true = 按本地时区解释，false = 按 UTC 解释
    */
   Time(int year, int month, int day, int hours, int minutes,
        int seconds = 0, int milliseconds = 0, bool useLocalTime = true) noexcept;
@@ -62,26 +67,25 @@ class Time {
   Time& operator=(const Time&) = default;
   ~Time() = default;
 
-  /** @brief 当前时间 */
-
-  /** 返回当前系统时间（可能非单调，不适用于计时） */
+  /** 返回当前系统时间（system_clock，非单调，不适用于计时） */
   static Time getCurrentTime() noexcept;
 
-  /** 返回自 epoch 以来的毫秒数（系统时钟） */
+  /** 返回自 epoch 以来的毫秒数（system_clock） */
   static int64_t currentTimeMillis() noexcept;
-
-  /** @brief 从其他类型构造 */
 
   /** 从 std::chrono::system_clock::time_point 构造 */
   static Time fromTimePoint(std::chrono::system_clock::time_point tp) noexcept;
 
-  /** 解析 ISO-8601 字符串（含时区偏移） */
+  /**
+   * 解析 ISO-8601 字符串
+   *
+   * 支持格式：
+   *   - 扩展格式：2024-01-15T10:30:00[.123][Z|+HH:MM|-HH:MM]
+   *   - 紧凑格式：20240115T103000[.123][Z|+HHMM|-HHMM]
+   *
+   * 解析失败时返回 epoch（1970-01-01T00:00:00Z）。
+   */
   static Time fromISO8601(const std::string& iso8601);
-
-  /** 返回基于编译时 __DATE__/__TIME__ 宏的时间 */
-  static Time getCompilationDate();
-
-  /** @brief 转换 */
 
   /** 返回自 epoch 以来的毫秒数 */
   int64_t toMilliseconds() const noexcept { return millisSinceEpoch_; }
@@ -89,103 +93,72 @@ class Time {
   /** 转换为 std::chrono::system_clock::time_point */
   std::chrono::system_clock::time_point toTimePoint() const noexcept;
 
-  /** @brief 字段分解 */
-
   /**
-   * 一次 localtime_r 调用分解全部字段（本地时区）
-   * 当需要多个字段时，比逐个调用 getXxx() 高效 N 倍
+   * 单次 localtime_r 调用分解全部字段
+   * 需要多个字段时应优先使用此方法，避免多次系统调用
    */
   BrokenDownTime toBrokenDown() const noexcept;
 
-  int getYear()         const noexcept;  ///< 4 位年份（本地时区）
-  int getMonth()        const noexcept;  ///< 0–11（本地时区）
-  int getDayOfMonth()   const noexcept;  ///< 1–31（本地时区）
-  int getDayOfWeek()    const noexcept;  ///< 0–6，0=周日（本地时区）
-  int getDayOfYear()    const noexcept;  ///< 0–365（本地时区）
-  int getHours()        const noexcept;  ///< 0–23（本地时区）
-  int getMinutes()      const noexcept;  ///< 0–59（本地时区）
+  int getYear()         const noexcept;  ///< 4 位年份
+  int getMonth()        const noexcept;  ///< 0–11（0 = 一月）
+  int getDayOfMonth()   const noexcept;  ///< 1–31
+  int getDayOfWeek()    const noexcept;  ///< 0–6（0 = 周日）
+  int getDayOfYear()    const noexcept;  ///< 0–365
+  int getHours()        const noexcept;  ///< 0–23
+  int getMinutes()      const noexcept;  ///< 0–59
   int getSeconds()      const noexcept;  ///< 0–59
   int getMilliseconds() const noexcept;  ///< 0–999（当前秒内的毫秒）
 
-  bool isAfternoon()           const noexcept;  ///< true = PM
-  int  getHoursInAmPmFormat()  const noexcept;  ///< 1–12
-  bool isDaylightSavingTime()  const noexcept;
-  int  getUTCOffsetSeconds()   const noexcept;  ///< 本地时区与 UTC 的偏移秒数
-
-  std::string getTimeZone()                              const;
-  std::string getMonthName(bool threeLetterVersion)      const;
-  std::string getWeekdayName(bool threeLetterVersion)    const;
-  std::string getUTCOffsetString(bool includeDivider)    const;
-
-  /** @brief 格式化 */
+  int         getUTCOffsetSeconds()                   const noexcept;  ///< 本地时区与 UTC 的偏移秒数
+  std::string getUTCOffsetString(bool includeDivider) const;            ///< 如 "+08:00" 或 "+0800"，UTC 返回 "Z"
+  std::string getTimeZone()                           const;            ///< 时区名，如 "CST"
 
   /**
-   * 格式化为字符串（使用单次 localtime_r，比逐字段访问高效）
+   * 格式化为可读字符串（单次 localtime_r）
+   *
+   * @param includeDate     包含日期部分（如 "15 Jan 2024"）
+   * @param includeTime     包含时间部分
+   * @param includeSeconds  时间部分是否包含秒
+   * @param use24HourClock  true = 24 小时制，false = 12 小时制（带 am/pm）
    */
   std::string toString(bool includeDate, bool includeTime,
                        bool includeSeconds = true, bool use24HourClock = false) const;
 
-  /** 使用 strftime 格式字符串格式化 */
+  /** 使用 strftime 格式字符串格式化（本地时区） */
   std::string formatted(const std::string& format) const;
 
-  /** ISO-8601 格式（含本地时区偏移） */
+  /** 序列化为 ISO-8601 字符串（含本地时区偏移） */
   std::string toISO8601(bool includeDividerCharacters) const;
 
-  /** @brief 静态工具 */
-
-  static std::string getWeekdayName(int dayNumber, bool threeLetterVersion);
-  static std::string getMonthName(int monthNumber, bool threeLetterVersion);
-
-  /** @brief 单调时钟 */
+  static std::string getMonthName(int monthNumber, bool abbreviated);    ///< monthNumber: 0–11；abbreviated=true 返回 "Jan"，false 返回 "January"
+  static std::string getWeekdayName(int dayNumber, bool abbreviated);    ///< dayNumber: 0–6；abbreviated=true 返回 "Mon"，false 返回 "Monday"
 
   /**
-   * 自系统启动以来的毫秒数（32 位，约 49.7 天后回绕）
-   * 单调递增，不受系统时钟调整影响，适用于计时
+   * 自系统启动以来的毫秒数（int64_t，无回绕问题）
+   *
+   * 基于 steady_clock，单调递增，不受系统时钟调整影响。
+   * 适用于计时和性能测量，不适用于表示绝对时刻。
    */
-  static uint32_t getMillisecondCounter() noexcept;
+  static int64_t getMillisecondCounter() noexcept;
 
-  /** getMillisecondCounter() 的快速近似版本（无系统调用，误差 <100ms） */
-  static uint32_t getApproximateMillisecondCounter() noexcept;
-
-  /** 等待直到 getMillisecondCounter() 达到目标值 */
-  static void waitForMillisecondCounter(uint32_t targetTime) noexcept;
-
-  /** 高精度计时器（纳秒级分辨率） */
+  /**
+   * 高精度计时器，返回毫秒（纳秒级分辨率）
+   *
+   * 适用于微基准测试；一般计时优先使用 getMillisecondCounter()。
+   */
   static double getMillisecondCounterHiRes() noexcept;
-
-  /** 返回高分辨率计数器当前值 */
-  static int64_t getHighResolutionTicks() noexcept;
-
-  /**
-   * 高分辨率计数器的每秒 tick 数（编译期常量）
-   */
-  static constexpr int64_t getHighResolutionTicksPerSecond() noexcept {
-    return std::chrono::high_resolution_clock::period::den /
-           std::chrono::high_resolution_clock::period::num;
-  }
-
-  static double  highResolutionTicksToSeconds(int64_t ticks) noexcept;
-  static int64_t secondsToHighResolutionTicks(double seconds) noexcept;
-
-  /** @brief 系统时钟设置 */
-
-  /** 尝试将系统时钟设置为当前对象的时间（通常需要管理员权限） */
-  bool setSystemTimeToThisTime() const;
-
-  /** @brief 运算符 */
 
   Time& operator+=(Timespan delta) noexcept;
   Time& operator-=(Timespan delta) noexcept;
 
  private:
   int64_t millisSinceEpoch_{0};
-  static std::atomic<uint32_t> lastMSCounterValue_;
 };
 
-Time operator+(Time time, Timespan delta) noexcept;
-Time operator+(Timespan delta, Time time) noexcept;
-Time operator-(Time time, Timespan delta) noexcept;
-Timespan operator-(Time time1, Time time2) noexcept;
+Time     operator+(Time time, Timespan delta) noexcept;
+Time     operator+(Timespan delta, Time time) noexcept;
+Time     operator-(Time time, Timespan delta) noexcept;
+Timespan operator-(Time time1, Time time2)   noexcept;
 
 bool operator==(Time time1, Time time2) noexcept;
 bool operator!=(Time time1, Time time2) noexcept;
