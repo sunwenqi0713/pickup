@@ -7,6 +7,7 @@
 
 namespace pickup {
 namespace codec {
+namespace hex {
 
 /**
  * @brief 将二进制数据编码为十六进制字符串
@@ -26,6 +27,17 @@ namespace codec {
 [[nodiscard]] inline std::string encode(const std::vector<uint8_t>& data, bool uppercase = true) {
   return encode(data.data(), data.size(), uppercase);
 }
+
+/**
+ * @brief 将整数编码为定宽十六进制字符串
+ * @param value     要转换的值
+ * @param uppercase 是否使用大写字母，默认为 true
+ * @return 十六进制字符串（uint8_t→2位，uint16_t→4位，uint32_t→8位，uint64_t→16位）
+ */
+[[nodiscard]] std::string encode(uint8_t  value, bool uppercase = true);
+[[nodiscard]] std::string encode(uint16_t value, bool uppercase = true);
+[[nodiscard]] std::string encode(uint32_t value, bool uppercase = true);
+[[nodiscard]] std::string encode(uint64_t value, bool uppercase = true);
 
 /**
  * @brief 将二进制数据编码为带分隔符的十六进制字符串
@@ -66,37 +78,6 @@ namespace codec {
 [[nodiscard]] std::optional<std::vector<uint8_t>> decodeWithSeparator(const std::string& input,
                                                                        char separator = ' ');
 
-/**
- * @brief 将 8 位无符号整数转换为十六进制字符串
- * @param value     要转换的值
- * @param uppercase 是否使用大写字母，默认为 true
- * @return 两字符十六进制字符串
- */
-[[nodiscard]] std::string toHex(uint8_t value, bool uppercase = true);
-
-/**
- * @brief 将 16 位无符号整数转换为十六进制字符串
- * @param value     要转换的值
- * @param uppercase 是否使用大写字母，默认为 true
- * @return 四字符十六进制字符串
- */
-[[nodiscard]] std::string toHex(uint16_t value, bool uppercase = true);
-
-/**
- * @brief 将 32 位无符号整数转换为十六进制字符串
- * @param value     要转换的值
- * @param uppercase 是否使用大写字母，默认为 true
- * @return 八字符十六进制字符串
- */
-[[nodiscard]] std::string toHex(uint32_t value, bool uppercase = true);
-
-/**
- * @brief 将 64 位无符号整数转换为十六进制字符串
- * @param value     要转换的值
- * @param uppercase 是否使用大写字母，默认为 true
- * @return 十六字符十六进制字符串
- */
-[[nodiscard]] std::string toHex(uint64_t value, bool uppercase = true);
-
+}  // namespace hex
 }  // namespace codec
 }  // namespace pickup

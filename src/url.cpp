@@ -4,10 +4,9 @@
 
 namespace pickup {
 namespace codec {
+namespace url {
 
 // 将十六进制字符转换为数值
-// x: 十六进制字符 (0-9, A-F, a-f)
-// 返回值: 对应的数值 (0-15)
 static unsigned char hexToValue(unsigned char x) {
   if (x >= '0' && x <= '9') {
     return x - '0';
@@ -21,12 +20,12 @@ static unsigned char hexToValue(unsigned char x) {
   return 0;
 }
 
-std::string urlEncode(const std::string& value) {
+std::string encode(const std::string& input) {
   std::string result;
-  result.reserve(value.length() * 3);
+  result.reserve(input.length() * 3);
 
   static const char kHexTable[] = "0123456789ABCDEF";
-  for (unsigned char ch : value) {
+  for (unsigned char ch : input) {
     if (std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~') {
       result += static_cast<char>(ch);
     } else if (ch == ' ') {
@@ -40,20 +39,20 @@ std::string urlEncode(const std::string& value) {
   return result;
 }
 
-std::string urlDecode(const std::string& value) {
+std::string decode(const std::string& input) {
   std::string result;
-  result.reserve(value.length());
+  result.reserve(input.length());
 
-  for (size_t i = 0; i < value.length(); ++i) {
-    char ch = value[i];
+  for (size_t i = 0; i < input.length(); ++i) {
+    char ch = input[i];
     if (ch == '%') {
-      if (i + 2 >= value.size()) {
+      if (i + 2 >= input.size()) {
         result += '?';  // 不完整的转义序列
         break;
       }
 
-      const char hi = hexToValue(value[i + 1]);
-      const char lo = hexToValue(value[i + 2]);
+      const char hi = hexToValue(input[i + 1]);
+      const char lo = hexToValue(input[i + 2]);
       result += static_cast<char>((hi << 4) + lo);
       i += 2;
     } else if (ch == '+') {
@@ -65,5 +64,6 @@ std::string urlDecode(const std::string& value) {
   return result;
 }
 
+}  // namespace url
 }  // namespace codec
 }  // namespace pickup
