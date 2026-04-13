@@ -6,6 +6,7 @@
 
 namespace pickup {
 namespace codec {
+namespace base64 {
 
 // Base64 编码字符表
 static const std::string kBase64Chars =
@@ -14,8 +15,6 @@ static const std::string kBase64Chars =
     "0123456789+/";
 
 // 判断一个字符是否是有效的 base64 字符
-// c: 待测试的字符
-// 返回值: 如果 c 是有效的 base64 字符则返回 true
 static bool isBase64Char(unsigned char c) {
   return (c == '+' ||
           (c >= '/' && c <= '9') ||  // /-9
@@ -23,7 +22,7 @@ static bool isBase64Char(unsigned char c) {
           (c >= 'a' && c <= 'z'));
 }
 
-std::string base64Encode(unsigned char const* input, size_t len) {
+std::string encode(unsigned char const* input, size_t len) {
   std::string ret;
   int i = 0;
   int j = 0;
@@ -73,7 +72,7 @@ std::string base64Encode(unsigned char const* input, size_t len) {
   return ret;
 }
 
-std::string base64Decode(std::string const& input) {
+std::string decode(std::string const& input) {
   size_t inLen = input.size();  // 输入字符串长度
   int i = 0;
   int j = 0;
@@ -130,12 +129,12 @@ std::string base64Decode(std::string const& input) {
   return ret;
 }
 
-std::string base64UrlToBase64(const std::string& base64url) {
+std::string fromUrlSafe(const std::string& input) {
   std::string temp;
-  temp.reserve(base64url.size() + 4);
+  temp.reserve(input.size() + 4);
 
   // 将 URL-safe Base64 字母表转换为标准 Base64
-  for (const auto& c : base64url) {
+  for (const auto& c : input) {
     if (c == '-') {
       temp += '+';
     } else if (c == '_') {
@@ -146,8 +145,8 @@ std::string base64UrlToBase64(const std::string& base64url) {
   }
 
   // 添加 padding
-  if ((base64url.size() % 4) != 0u) {
-    int toAppend = 4 - static_cast<int>(base64url.size() % 4);
+  if ((input.size() % 4) != 0u) {
+    int toAppend = 4 - static_cast<int>(input.size() % 4);
     for (int i = 0; i < toAppend; i++) {
       temp += '=';
     }
@@ -156,8 +155,8 @@ std::string base64UrlToBase64(const std::string& base64url) {
   return temp;
 }
 
-std::string base64ToBase64Url(const std::string& base64) {
-  std::string temp(base64);
+std::string toUrlSafe(const std::string& input) {
+  std::string temp(input);
 
   // 移除 padding
   size_t found = temp.find_last_not_of('=');
@@ -170,5 +169,6 @@ std::string base64ToBase64Url(const std::string& base64) {
   return temp.substr(0, found + 1);
 }
 
+}  // namespace base64
 }  // namespace codec
 }  // namespace pickup

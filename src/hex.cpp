@@ -4,9 +4,9 @@
 
 namespace pickup {
 namespace codec {
+namespace hex {
 
 std::string encode(const uint8_t* data, size_t len, bool uppercase) {
-  // 十六进制字符表
   const char* hex_table = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 
   std::string hex_str;
@@ -86,7 +86,6 @@ std::optional<std::vector<uint8_t>> decode(const std::string& input) {
 }
 
 std::optional<std::vector<uint8_t>> decodeWithSeparator(const std::string& input, char separator) {
-  std::vector<uint8_t> bytes;
   std::string clean_hex;
   clean_hex.reserve(input.length());
 
@@ -100,48 +99,40 @@ std::optional<std::vector<uint8_t>> decodeWithSeparator(const std::string& input
   return decode(clean_hex);
 }
 
-std::string toHex(uint8_t value, bool uppercase) {
+std::string encode(uint8_t value, bool uppercase) {
   const char* hex_table = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
   return {hex_table[value >> 4], hex_table[value & 0x0F]};
 }
 
-std::string toHex(uint16_t value, bool uppercase) {
+std::string encode(uint16_t value, bool uppercase) {
   std::array<uint8_t, 2> data;
-
-  // 出于性能原因，不使用 stringstream + std::hex
-  data[1] = (value & 0x00FF);
   data[0] = (value & 0xFF00) >> 8;
-
-  return encode(data.data(), data.size());
+  data[1] = (value & 0x00FF);
+  return encode(data.data(), data.size(), uppercase);
 }
 
-std::string toHex(uint32_t value, bool uppercase) {
+std::string encode(uint32_t value, bool uppercase) {
   std::array<uint8_t, 4> data;
-
-  // 出于性能原因，不使用 stringstream + std::hex
-  data[3] = (value & 0x000000FF);
-  data[2] = (value & 0x0000FF00) >> 8;
-  data[1] = (value & 0x00FF0000) >> 16;
   data[0] = (value & 0xFF000000) >> 24;
-
+  data[1] = (value & 0x00FF0000) >> 16;
+  data[2] = (value & 0x0000FF00) >> 8;
+  data[3] = (value & 0x000000FF);
   return encode(data.data(), data.size(), uppercase);
 }
 
-std::string toHex(uint64_t value, bool uppercase) {
+std::string encode(uint64_t value, bool uppercase) {
   std::array<uint8_t, 8> data;
-
-  // 出于性能原因，不使用 stringstream + std::hex
-  data[7] = (value & 0x00000000000000FF);
-  data[6] = (value & 0x000000000000FF00) >> 8;
-  data[5] = (value & 0x0000000000FF0000) >> 16;
-  data[4] = (value & 0x00000000FF000000) >> 24;
-  data[3] = (value & 0x000000FF00000000) >> 32;
-  data[2] = (value & 0x0000FF0000000000) >> 40;
-  data[1] = (value & 0x00FF000000000000) >> 48;
   data[0] = (value & 0xFF00000000000000) >> 56;
-
+  data[1] = (value & 0x00FF000000000000) >> 48;
+  data[2] = (value & 0x0000FF0000000000) >> 40;
+  data[3] = (value & 0x000000FF00000000) >> 32;
+  data[4] = (value & 0x00000000FF000000) >> 24;
+  data[5] = (value & 0x0000000000FF0000) >> 16;
+  data[6] = (value & 0x000000000000FF00) >> 8;
+  data[7] = (value & 0x00000000000000FF);
   return encode(data.data(), data.size(), uppercase);
 }
 
+}  // namespace hex
 }  // namespace codec
 }  // namespace pickup
