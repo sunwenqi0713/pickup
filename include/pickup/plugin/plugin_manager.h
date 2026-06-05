@@ -54,10 +54,8 @@ class PluginManager {
   size_t pluginCount() const;
 
  private:
-  // 有序列表用于按注册逆序卸载
-  std::vector<std::unique_ptr<PluginLoader>> loaders_;
-  // 名称索引用于 O(1) 查找
-  std::unordered_map<std::string, PluginBase*> index_;
+  std::vector<std::unique_ptr<PluginLoader>> loaders_;       ///< 有序列表用于按注册逆序卸载
+  std::unordered_map<std::string, PluginBase*> index_;       ///< 名称索引用于 O(1) 查找
   mutable std::mutex mutex_;
 };
 

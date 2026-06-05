@@ -10,7 +10,7 @@ namespace time {
 class Timespan;
 
 /**
- * 表示一个绝对的日期和时间
+ * @brief 表示一个绝对的日期和时间
  *
  * 内部以毫秒精度存储，自 Unix epoch（UTC 1970-01-01 00:00:00）起算。
  *
@@ -22,7 +22,7 @@ class Timespan;
 class Time {
  public:
   /**
-   * 一次性分解的本地时间字段
+   * @brief 一次性分解的本地时间字段
    *
    * 当需要多个字段时，通过 toBrokenDown() 获取，比逐个调用 getXxx() 高效。
    * month 范围 0–11（与 std::tm 一致）。
@@ -38,18 +38,19 @@ class Time {
   };
 
   /**
-   * 默认构造：UTC 1970-01-01 00:00:00
+   * @brief 默认构造：UTC 1970-01-01 00:00:00
    * @see getCurrentTime
    */
   Time() = default;
 
   /**
-   * 从自 epoch 以来的毫秒数构造
+   * @brief 从自 epoch 以来的毫秒数构造
+   * @param millisecondsSinceEpoch 自 Unix epoch 起的毫秒数
    */
   explicit Time(int64_t millisecondsSinceEpoch) noexcept;
 
   /**
-   * 从日期/时间组件构造
+   * @brief 从日期/时间组件构造
    *
    * @param year         4 位年份
    * @param month        0–11（0 = 一月）
@@ -67,17 +68,17 @@ class Time {
   Time& operator=(const Time&) = default;
   ~Time() = default;
 
-  /** 返回当前系统时间（system_clock，非单调，不适用于计时） */
+  /** @brief 返回当前系统时间（system_clock，非单调，不适用于计时） */
   static Time getCurrentTime() noexcept;
 
-  /** 返回自 epoch 以来的毫秒数（system_clock） */
+  /** @brief 返回自 epoch 以来的毫秒数（system_clock） */
   static int64_t currentTimeMillis() noexcept;
 
-  /** 从 std::chrono::system_clock::time_point 构造 */
+  /** @brief 从 std::chrono::system_clock::time_point 构造 */
   static Time fromTimePoint(std::chrono::system_clock::time_point tp) noexcept;
 
   /**
-   * 解析 ISO-8601 字符串
+   * @brief 解析 ISO-8601 字符串
    *
    * 支持格式：
    *   - 扩展格式：2024-01-15T10:30:00[.123][Z|+HH:MM|-HH:MM]
@@ -87,15 +88,15 @@ class Time {
    */
   static Time fromISO8601(const std::string& iso8601);
 
-  /** 返回自 epoch 以来的毫秒数 */
+  /** @brief 返回自 epoch 以来的毫秒数 */
   int64_t toMilliseconds() const noexcept { return millisSinceEpoch_; }
 
-  /** 转换为 std::chrono::system_clock::time_point */
+  /** @brief 转换为 std::chrono::system_clock::time_point */
   std::chrono::system_clock::time_point toTimePoint() const noexcept;
 
   /**
-   * 单次 localtime_r 调用分解全部字段
-   * 需要多个字段时应优先使用此方法，避免多次系统调用
+   * @brief 单次 localtime_r 调用分解全部字段
+   * @details 需要多个字段时应优先使用此方法，避免多次系统调用
    */
   BrokenDownTime toBrokenDown() const noexcept;
 
@@ -114,7 +115,7 @@ class Time {
   std::string getTimeZone()                           const;            ///< 时区名，如 "CST"
 
   /**
-   * 格式化为可读字符串（单次 localtime_r）
+   * @brief 格式化为可读字符串（单次 localtime_r）
    *
    * @param includeDate     包含日期部分（如 "15 Jan 2024"）
    * @param includeTime     包含时间部分
@@ -124,17 +125,17 @@ class Time {
   std::string toString(bool includeDate, bool includeTime,
                        bool includeSeconds = true, bool use24HourClock = false) const;
 
-  /** 使用 strftime 格式字符串格式化（本地时区） */
+  /** @brief 使用 strftime 格式字符串格式化（本地时区） */
   std::string formatted(const std::string& format) const;
 
-  /** 序列化为 ISO-8601 字符串（含本地时区偏移） */
+  /** @brief 序列化为 ISO-8601 字符串（含本地时区偏移） */
   std::string toISO8601(bool includeDividerCharacters) const;
 
   static std::string getMonthName(int monthNumber, bool abbreviated);    ///< monthNumber: 0–11；abbreviated=true 返回 "Jan"，false 返回 "January"
   static std::string getWeekdayName(int dayNumber, bool abbreviated);    ///< dayNumber: 0–6；abbreviated=true 返回 "Mon"，false 返回 "Monday"
 
   /**
-   * 自系统启动以来的毫秒数（int64_t，无回绕问题）
+   * @brief 自系统启动以来的毫秒数（int64_t，无回绕问题）
    *
    * 基于 steady_clock，单调递增，不受系统时钟调整影响。
    * 适用于计时和性能测量，不适用于表示绝对时刻。
@@ -142,7 +143,7 @@ class Time {
   static int64_t getMillisecondCounter() noexcept;
 
   /**
-   * 高精度计时器，返回毫秒（纳秒级分辨率）
+   * @brief 高精度计时器，返回毫秒（纳秒级分辨率）
    *
    * 适用于微基准测试；一般计时优先使用 getMillisecondCounter()。
    */

@@ -130,29 +130,12 @@ std::string decode(std::string const& input) {
 }
 
 std::string fromUrlSafe(const std::string& input) {
-  std::string temp;
-  temp.reserve(input.size() + 4);
-
   // 将 URL-safe Base64 字母表转换为标准 Base64
-  for (const auto& c : input) {
-    if (c == '-') {
-      temp += '+';
-    } else if (c == '_') {
-      temp += '/';
-    } else {
-      temp += c;
-    }
-  }
+  std::string temp = utils::replaceAll(input, "-", "+");
+  temp = utils::replaceAll(temp, "_", "/");
 
-  // 添加 padding
-  if ((input.size() % 4) != 0u) {
-    int toAppend = 4 - static_cast<int>(input.size() % 4);
-    for (int i = 0; i < toAppend; i++) {
-      temp += '=';
-    }
-  }
-
-  return temp;
+  // 添加 padding 至 4 的倍数
+  return utils::padRight(temp, ((temp.size() + 3) / 4) * 4, '=');
 }
 
 std::string toUrlSafe(const std::string& input) {

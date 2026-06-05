@@ -53,20 +53,28 @@ public:
         }
     }
 
-    // 检查是否包含指定类型
+    /**
+     * @brief 检查是否包含指定类型
+     * @param id 类型标识符
+     * @return 包含返回 true，否则返回 false
+     */
     bool contains(const IdentifierType& id) const {
         return producers_.find(id) != producers_.end();
     }
 
-    // 注销指定类型
+    /**
+     * @brief 注销指定类型
+     * @param id 类型标识符
+     * @return 注销成功返回 true，未注册返回 false
+     */
     bool remove(const IdentifierType& id) {
         return producers_.erase(id) == 1;
     }
 
-    // 清空所有注册项
+    /** @brief 清空所有注册项 */
     void clear() noexcept { producers_.clear(); }
 
-    // 判断工厂是否为空
+    /** @brief 判断工厂是否为空 */
     bool empty() const noexcept { return producers_.empty(); }
 
 private:

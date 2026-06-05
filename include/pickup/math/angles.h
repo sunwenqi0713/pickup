@@ -6,14 +6,16 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-/**
- * @brief 定义了一些角度相关的工具函数
- * 角度与弧度的转换转换关系如下
- * radians = degrees x π / 180
- * degrees = radians x 180 / π
- */
 namespace pickup {
 namespace math {
+
+/**
+ * @brief 角度相关的工具函数
+ *
+ * 角度与弧度的转换关系如下：
+ * - radians = degrees × π / 180
+ * - degrees = radians × 180 / π
+ */
 
 /**
  * @brief 将角度从度数转换为弧度

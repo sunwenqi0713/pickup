@@ -6,7 +6,7 @@ namespace pickup {
 namespace utils {
 
 /**
- * @c Result 类的简化版本，假设状态只有成功或失败两种。
+ * @brief Result 类的简化版本，假设状态只有成功或失败两种。
  *
  * 这个类专门用于只需要表示成功/失败的场景，
  * 相比通用的 Result<bool, Value> 提供更语义化的接口。
@@ -17,7 +17,7 @@ template <typename Value>
 class SuccessResult : public Result<bool, Value> {
  public:
   /**
-   * 创建成功结果并关联一个值。
+   * @brief 创建成功结果并关联一个值。
    *
    * @param value 要与结果关联的值。
    * @return 包含值的成功结果。
@@ -25,14 +25,14 @@ class SuccessResult : public Result<bool, Value> {
   inline static SuccessResult<Value> success(Value value);
 
   /**
-   * 创建失败结果。
+   * @brief 创建失败结果。
    *
    * @return 失败结果（无关联值）。
    */
   inline static SuccessResult<Value> failure();
 
   /**
-   * 构造函数，同时提供成功状态和值。
+   * @brief 构造函数，同时提供成功状态和值。
    *
    * @param succeeded 成功状态。true 表示成功，false 表示失败。
    * @param value 要与结果关联的值。
@@ -40,7 +40,7 @@ class SuccessResult : public Result<bool, Value> {
   inline SuccessResult(bool succeeded, Value value);
 
   /**
-   * 检查结果状态是否为成功。
+   * @brief 检查结果状态是否为成功。
    *
    * 覆盖基类 isSuccess()：基类以 Status{} = false 为成功判断依据，
    * 对 bool 类型语义反转，此处修正为直接返回 status()。
@@ -51,8 +51,8 @@ class SuccessResult : public Result<bool, Value> {
 
  protected:
   /**
-   * 构造函数，仅提供成功状态。
-   * 注意：此构造函数为保护成员，因为失败结果不应该包含值。
+   * @brief 构造函数，仅提供成功状态。
+   * @details 注意：此构造函数为保护成员，因为失败结果不应该包含值。
    *
    * @param succeeded 成功状态。true 表示成功，false 表示失败。
    */

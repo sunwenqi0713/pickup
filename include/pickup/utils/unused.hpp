@@ -9,11 +9,11 @@ namespace utils {
  */
 template <typename... Args>
 #if defined(__cpp_constexpr) && __cpp_constexpr >= 201304L
-constexpr  /** @brief C++14 及以上使用 constexpr，编译时求值 */
+constexpr
 #else
-inline  /** @brief 否则使用 inline，建议编译器内联展开 */
+inline
 #endif
-    void unused(const Args&...) noexcept {  /** @brief noexcept 保证不抛异常 */
+    void unused(const Args&...) noexcept {
 }
 
 }  // namespace utils
@@ -24,11 +24,9 @@ inline  /** @brief 否则使用 inline，建议编译器内联展开 */
  * @details 根据编译器类型选择不同实现
  */
 
-#if defined(_MSC_VER)  /** @brief Microsoft Visual C++ 编译器 */
-/** @brief 针对 MSVC：将参数转换为 void 表达式 */
+#if defined(_MSC_VER)
 #define PICKUP_UNUSED(...) ((void)(__VA_ARGS__))
-#else  /** @brief 其他编译器（GCC、Clang 等） */
-/** @brief 通过 decltype 调用 unused 函数 */
+#else
 #define PICKUP_UNUSED(...) (decltype(pickup::utils::unused(__VA_ARGS__))())
 #endif
 

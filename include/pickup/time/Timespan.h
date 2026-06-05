@@ -7,7 +7,7 @@ namespace pickup {
 namespace time {
 
 /**
- * 相对时间度量
+ * @brief 相对时间度量
  *
  * 内部以微秒精度的 int64_t 存储，避免 double 浮点累积误差。
  * 可以是正数或负数。
@@ -17,7 +17,7 @@ namespace time {
 class Timespan {
  public:
   /**
-   * 创建 Timespan 对象
+   * @brief 创建 Timespan 对象
    * @param seconds 秒数，可以是正数或负数
    */
   explicit Timespan(double seconds = 0.0) noexcept;
@@ -26,40 +26,40 @@ class Timespan {
   Timespan& operator=(const Timespan&) noexcept = default;
   ~Timespan() noexcept = default;
 
-  /** 创建表示若干毫秒的 Timespan（精确，无浮点误差） */
+  /** @brief 创建表示若干毫秒的 Timespan（精确，无浮点误差） */
   static Timespan milliseconds(int milliseconds) noexcept;
-  /** 创建表示若干毫秒的 Timespan（精确，无浮点误差） */
+  /** @brief 创建表示若干毫秒的 Timespan（精确，无浮点误差） */
   static Timespan milliseconds(int64_t milliseconds) noexcept;
-  /** 创建表示若干秒的 Timespan */
+  /** @brief 创建表示若干秒的 Timespan */
   static Timespan seconds(double seconds) noexcept;
-  /** 创建表示若干分钟的 Timespan */
+  /** @brief 创建表示若干分钟的 Timespan */
   static Timespan minutes(double numberOfMinutes) noexcept;
-  /** 创建表示若干小时的 Timespan */
+  /** @brief 创建表示若干小时的 Timespan */
   static Timespan hours(double numberOfHours) noexcept;
-  /** 创建表示若干天的 Timespan */
+  /** @brief 创建表示若干天的 Timespan */
   static Timespan days(double numberOfDays) noexcept;
-  /** 创建表示若干周的 Timespan */
+  /** @brief 创建表示若干周的 Timespan */
   static Timespan weeks(double numberOfWeeks) noexcept;
 
-  /** 返回微秒数（精确整数，无精度损失） */
+  /** @brief 返回微秒数（精确整数，无精度损失） */
   int64_t inMicroseconds() const noexcept { return microseconds_; }
 
-  /** 返回毫秒数 */
+  /** @brief 返回毫秒数 */
   int64_t inMilliseconds() const noexcept;
 
-  /** 返回秒数（double） */
+  /** @brief 返回秒数（double） */
   double inSeconds() const noexcept { return static_cast<double>(microseconds_) / 1e6; }
 
-  /** 返回分钟数 */
+  /** @brief 返回分钟数 */
   double inMinutes() const noexcept;
 
-  /** 返回小时数 */
+  /** @brief 返回小时数 */
   double inHours() const noexcept;
 
-  /** 返回天数 */
+  /** @brief 返回天数 */
   double inDays() const noexcept;
 
-  /** 返回周数 */
+  /** @brief 返回周数 */
   double inWeeks() const noexcept;
 
   Timespan operator+=(Timespan timeToAdd) noexcept;

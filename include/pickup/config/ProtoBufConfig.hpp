@@ -10,17 +10,41 @@
 namespace pickup {
 namespace config {
 
+/**
+ * @brief 基于 protobuf 文本格式的配置基类模板
+ *
+ * @tparam ConfigType protobuf 消息类型
+ */
 template <typename ConfigType>
 class ProtoBufConfig {
  public:
   virtual ~ProtoBufConfig() = default;
 
+  /**
+   * @brief 获取当前配置
+   * @return 配置的常量引用
+   */
   const ConfigType& config() const;
 
+  /**
+   * @brief 从文件加载配置（文本格式）
+   * @param conf_file 配置文件路径
+   * @return 成功返回 true，文件打开失败或解析失败返回 false
+   */
   bool loadFromFile(const std::string& conf_file);
 
+  /**
+   * @brief 从字符串加载配置（文本格式）
+   * @param content 文本格式的配置内容
+   * @return 成功返回 true，解析失败返回 false
+   */
   bool loadFromString(const std::string& content);
 
+  /**
+   * @brief 将当前配置写入文件（文本格式）
+   * @param dump_file 目标文件路径
+   * @return 成功返回 true，写入失败返回 false
+   */
   bool dumpToFile(const std::string& dump_file) const;
 
  private:

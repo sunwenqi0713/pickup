@@ -10,6 +10,11 @@ namespace plugin {
  */
 class PluginBase {
  public:
+  /**
+   * @brief 构造插件
+   * @param name    插件名称
+   * @param version 插件版本
+   */
   PluginBase(std::string name = "", std::string version = "")
       : name_(std::move(name)), version_(std::move(version)) {}
   virtual ~PluginBase() = default;
@@ -17,10 +22,21 @@ class PluginBase {
   PluginBase(const PluginBase&) = delete;
   PluginBase& operator=(const PluginBase&) = delete;
 
+  /** @brief 获取插件名称 */
   const std::string& name() const { return name_; }
+
+  /** @brief 获取插件版本 */
   const std::string& version() const { return version_; }
 
+  /**
+   * @brief 初始化插件
+   * @return 成功返回 true，失败返回 false
+   */
   virtual bool initialize() = 0;
+
+  /**
+   * @brief 关闭插件并释放资源
+   */
   virtual void shutdown() = 0;
 
  private:
