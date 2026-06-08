@@ -40,6 +40,7 @@ set(PICKUP_SOURCES
     src/Event.cpp
     src/FileUtils.cpp
     src/hex.cpp
+    src/Observer.cpp
     src/SignalHandler.cpp
     src/StringUtils.cpp
     src/Thread.cpp
