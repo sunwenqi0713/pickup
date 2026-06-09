@@ -37,7 +37,7 @@ void ThreadPool::start(size_t numThreads) {
   threads_.reserve(numThreads);
   for (size_t i = 0; i < numThreads; ++i) {
     threads_.emplace_back([this, id = i]() {
-      setThreadName((name_ + std::to_string(id)).c_str());
+      this_thread::setName(name_ + std::to_string(id));
       threadFunc();
     });
   }
