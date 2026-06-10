@@ -125,19 +125,7 @@ std::string repeat(const std::string& str, size_t n) {
   return result;
 }
 
-std::vector<std::string> split(const std::string& str, const std::string& delims) {
-  std::vector<std::string> vec;
-  size_t old_pos = 0;
-  size_t pos = 0;
-  while ((pos = str.find_first_of(delims, old_pos)) != std::string::npos) {
-    vec.emplace_back(str.substr(old_pos, pos - old_pos));
-    old_pos = pos + 1;
-  }
-  vec.emplace_back(str.substr(old_pos));
-  return vec;
-}
-
-std::vector<std::string> splitBy(const std::string& str, const std::string& delimiter) {
+std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
   std::vector<std::string> vec;
   if (delimiter.empty()) {
     for (char c : str) vec.emplace_back(1, c);
@@ -150,6 +138,18 @@ std::vector<std::string> splitBy(const std::string& str, const std::string& deli
     start = pos + delimiter.size();
   }
   vec.emplace_back(str.substr(start));
+  return vec;
+}
+
+std::vector<std::string> splitAnyOf(const std::string& str, const std::string& delimiters) {
+  std::vector<std::string> vec;
+  size_t old_pos = 0;
+  size_t pos = 0;
+  while ((pos = str.find_first_of(delimiters, old_pos)) != std::string::npos) {
+    vec.emplace_back(str.substr(old_pos, pos - old_pos));
+    old_pos = pos + 1;
+  }
+  vec.emplace_back(str.substr(old_pos));
   return vec;
 }
 

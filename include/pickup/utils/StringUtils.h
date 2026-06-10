@@ -179,23 +179,26 @@ std::string padRight(const std::string& str, size_t width, char fill = ' ');
 std::string repeat(const std::string& str, size_t n);
 
 /**
- * @brief 使用分隔符分割字符串
- * @param str    要分割的字符串
- * @param delims 分隔符字符集（每个字符各自独立作为分隔符）
- * @return 分割后的子串向量
- */
-std::vector<std::string> split(const std::string& str, const std::string& delims);
-
-/**
  * @brief 按完整字符串分隔符分割
- * @details 与 split 的区别：delimiter 作为整体匹配，不是逐字符。
- *          例：splitBy("a::b::c", "::") → ["a","b","c"]，
- *          而  split("a::b::c", "::") → ["a","","b","","c"]
  * @param str       要分割的字符串
  * @param delimiter 分隔字符串，如 "::" 或 ", "
  * @return 分割后的子串向量；delimiter 为空时返回逐字符向量
+ * @code
+ * split("a::b::c", "::") → ["a", "b", "c"]
+ * @endcode
  */
-std::vector<std::string> splitBy(const std::string& str, const std::string& delimiter);
+std::vector<std::string> split(const std::string& str, const std::string& delimiter);
+
+/**
+ * @brief 按字符集合分割字符串
+ * @param str        要分割的字符串
+ * @param delimiters 分隔符字符集（每个字符各自独立作为分隔符）
+ * @return 分割后的子串向量
+ * @code
+ * splitAnyOf("a,b;c", ",;") → ["a", "b", "c"]
+ * @endcode
+ */
+std::vector<std::string> splitAnyOf(const std::string& str, const std::string& delimiters);
 
 /**
  * @brief 使用字符分隔符连接字符串向量
