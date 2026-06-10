@@ -44,6 +44,7 @@ set(PICKUP_SOURCES
     src/SignalHandler.cpp
     src/StringUtils.cpp
     src/Thread.cpp
+    src/Timer.cpp
     src/ThreadPool.cpp
     src/Time.cpp
     src/Timespan.cpp
