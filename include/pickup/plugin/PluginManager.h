@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "pickup/plugin/plugin_base.h"
-#include "pickup/utils/dynamic_library.h"
+#include "pickup/plugin/PluginBase.h"
+#include "pickup/utils/DynamicLibrary.h"
 
 namespace pickup {
 namespace plugin {

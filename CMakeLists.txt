@@ -37,12 +37,12 @@ set(PICKUP_SOURCES
     src/ByteBuffer.cpp
     src/CircularBuffer.cpp
     src/Component.cpp
-    src/dynamic_library.cpp
+    src/DynamicLibrary.cpp
     src/Event.cpp
     src/FileUtils.cpp
     src/hex.cpp
     src/Observer.cpp
-    src/plugin_manager.cpp
+    src/PluginManager.cpp
     src/SignalHandler.cpp
     src/StringUtils.cpp
     src/Thread.cpp

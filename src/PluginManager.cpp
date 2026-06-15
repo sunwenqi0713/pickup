@@ -1,4 +1,4 @@
-#include "pickup/plugin/plugin_manager.h"
+#include "pickup/plugin/PluginManager.h"
 
 #include <filesystem>
 #include <iostream>
