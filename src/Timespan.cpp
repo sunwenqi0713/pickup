@@ -1,84 +1,44 @@
 #include "pickup/time/Timespan.h"
 
+#include <string>
+
 namespace pickup {
 namespace time {
 
-// 公开构造函数：从 double 秒数转换，精度降至微秒级（double 约 15 位有效数字）
-Timespan::Timespan(double seconds) noexcept
-    : microseconds_(static_cast<int64_t>(seconds * 1e6)) {}
+std::string Timespan::toString() const {
+  if (duration_ == 0) return "0ns";
 
-// 工厂方法：整数路径完全精确，不经过 double
+  const bool negative = duration_ < 0;
+  // 用无符号取绝对值，避免 INT64_MIN 取负溢出
+  uint64_t magnitude = negative ? (0ull - static_cast<uint64_t>(duration_))
+                                : static_cast<uint64_t>(duration_);
 
-Timespan Timespan::milliseconds(int ms) noexcept {
-  return Timespan(static_cast<int64_t>(ms) * static_cast<int64_t>(1000));
+  struct Unit {
+    uint64_t ns;
+    const char* suffix;
+  };
+  static const Unit units[] = {
+      {86400000000000ull, "d"},
+      {3600000000000ull,  "h"},
+      {60000000000ull,    "m"},
+      {1000000000ull,     "s"},
+      {1000000ull,        "ms"},
+      {1000ull,           "us"},
+      {1ull,              "ns"},
+  };
+
+  std::string out;
+  if (negative) out = "-";
+  for (const auto& u : units) {
+    const uint64_t q = magnitude / u.ns;
+    magnitude %= u.ns;
+    if (q != 0) {
+      out += std::to_string(q);
+      out += u.suffix;
+    }
+  }
+  return out;
 }
-
-Timespan Timespan::milliseconds(int64_t ms) noexcept {
-  return Timespan(ms * static_cast<int64_t>(1000));
-}
-
-Timespan Timespan::seconds(double s) noexcept {
-  return Timespan(static_cast<int64_t>(s * 1e6));
-}
-
-Timespan Timespan::minutes(double m) noexcept {
-  return Timespan(static_cast<int64_t>(m * 60e6));
-}
-
-Timespan Timespan::hours(double h) noexcept {
-  return Timespan(static_cast<int64_t>(h * 3600e6));
-}
-
-Timespan Timespan::days(double d) noexcept {
-  return Timespan(static_cast<int64_t>(d * 86400e6));
-}
-
-Timespan Timespan::weeks(double w) noexcept {
-  return Timespan(static_cast<int64_t>(w * 604800e6));
-}
-
-// 访问器
-
-int64_t Timespan::inMilliseconds() const noexcept { return microseconds_ / 1000; }
-double  Timespan::inMinutes()      const noexcept { return static_cast<double>(microseconds_) / 60e6; }
-double  Timespan::inHours()        const noexcept { return static_cast<double>(microseconds_) / 3600e6; }
-double  Timespan::inDays()         const noexcept { return static_cast<double>(microseconds_) / 86400e6; }
-double  Timespan::inWeeks()        const noexcept { return static_cast<double>(microseconds_) / 604800e6; }
-
-// 复合赋值运算符
-
-Timespan Timespan::operator+=(Timespan t) noexcept {
-  microseconds_ += t.microseconds_;
-  return *this;
-}
-
-Timespan Timespan::operator-=(Timespan t) noexcept {
-  microseconds_ -= t.microseconds_;
-  return *this;
-}
-
-Timespan Timespan::operator+=(double secs) noexcept {
-  microseconds_ += static_cast<int64_t>(secs * 1e6);
-  return *this;
-}
-
-Timespan Timespan::operator-=(double secs) noexcept {
-  microseconds_ -= static_cast<int64_t>(secs * 1e6);
-  return *this;
-}
-
-// 自由函数运算符
-
-Timespan operator+(Timespan t1, Timespan t2) noexcept { return t1 += t2; }
-Timespan operator-(Timespan t1, Timespan t2) noexcept { return t1 -= t2; }
-
-// 比较基于精确整数，无浮点舍入问题
-bool operator==(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() == t2.inMicroseconds(); }
-bool operator!=(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() != t2.inMicroseconds(); }
-bool operator> (Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() >  t2.inMicroseconds(); }
-bool operator< (Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() <  t2.inMicroseconds(); }
-bool operator>=(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() >= t2.inMicroseconds(); }
-bool operator<=(Timespan t1, Timespan t2) noexcept { return t1.inMicroseconds() <= t2.inMicroseconds(); }
 
 }  // namespace time
 }  // namespace pickup

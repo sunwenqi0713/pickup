@@ -50,6 +50,8 @@ set(PICKUP_SOURCES
     src/ThreadPool.cpp
     src/Time.cpp
     src/Timespan.cpp
+    src/Timestamp.cpp
+    src/Timezone.cpp
     src/url.cpp
 )
 

@@ -1,172 +1,228 @@
 #pragma once
 
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <string>
+
+#include "pickup/time/Timespan.h"
+#include "pickup/time/Timestamp.h"
 
 namespace pickup {
 namespace time {
 
-class Timespan;
+/** @brief 星期（0 = 周日，与 std::tm::tm_wday 一致） */
+enum class Weekday {
+  Sunday = 0,
+  Monday,
+  Tuesday,
+  Wednesday,
+  Thursday,
+  Friday,
+  Saturday,
+};
+
+class UtcTime;
+class LocalTime;
 
 /**
- * @brief 表示一个绝对的日期和时间
+ * @brief 日历日期与时间（分解为年/月/日/时/分/秒及亚秒字段 + 星期）
  *
- * 内部以毫秒精度存储，自 Unix epoch（UTC 1970-01-01 00:00:00）起算。
+ * 支持与 Timestamp 互转、ISO-8601 解析/序列化、strftime 及可读字符串格式化。
  *
- * 时区说明：字段分解（getYear/getMonth/... 及 toBrokenDown）均使用本地时区。
- * month 字段遵循 std::tm 惯例，范围为 0–11（0=一月）。
+ * 本基类的字段是不带时区语义的“挂钟读数”，格式化时按 UTC 处理；需要明确的
+ * UTC 或本地时间语义时应使用派生类 UtcTime / LocalTime。比较运算逐级比较日历
+ * 字段，比较的是挂钟表示而非绝对时刻——不同时区、指向同一时刻的两个 Time
+ * 并不相等。
  *
- * @see Timespan
+ * 可表示范围：year ∈ [1678, 2262]（受 int64 纳秒 Timestamp 限制）。
+ *
+ * @note 非线程安全。
  */
 class Time {
  public:
+  /** @brief 初始化为 epoch（1970-01-01T00:00:00） */
+  Time() noexcept;
+
   /**
-   * @brief 一次性分解的本地时间字段
+   * @brief 从日历字段构造
+   * @param year        年（1678–2262）
+   * @param month       月（1–12）
+   * @param day         日（1–31）
+   * @param hour        时（0–23）
+   * @param minute      分（0–59）
+   * @param second      秒（0–59）
+   * @param millisecond 毫秒（0–999）
+   * @param microsecond 微秒（0–999）
+   * @param nanosecond  纳秒（0–999）
+   * @throws std::invalid_argument 任一字段越界
+   */
+  explicit Time(int year, int month, int day, int hour = 0, int minute = 0,
+                int second = 0, int millisecond = 0, int microsecond = 0, int nanosecond = 0);
+
+  Time(const Time&) noexcept = default;
+  Time(Time&&) noexcept = default;
+  virtual ~Time() noexcept = default;
+
+  Time& operator=(const Timestamp& timestamp) { return operator=(Time(timestamp)); }
+  Time& operator=(const Time&) noexcept = default;
+  Time& operator=(Time&&) noexcept = default;
+
+  // 偏移运算经由 UTC 时刻进行，结果为按 UTC 分解的 Time
+  Time& operator+=(const Timespan& offset) { return operator=(Time(utcstamp() + offset)); }
+  Time& operator-=(const Timespan& offset) { return operator=(Time(utcstamp() - offset)); }
+
+  friend Time operator+(const Time& time, const Timespan& offset) { return Time(time.utcstamp() + offset); }
+  friend Time operator+(const Timespan& offset, const Time& time) { return Time(time.utcstamp() + offset); }
+  friend Time operator-(const Time& time, const Timespan& offset) { return Time(time.utcstamp() - offset); }
+  friend Timespan operator-(const Time& time1, const Time& time2) { return time1.utcstamp() - time2.utcstamp(); }
+
+  friend bool operator==(const Time& t1, const Time& t2) noexcept;
+  friend bool operator!=(const Time& t1, const Time& t2) noexcept;
+  friend bool operator<(const Time& t1, const Time& t2) noexcept;
+  friend bool operator>(const Time& t1, const Time& t2) noexcept;
+  friend bool operator<=(const Time& t1, const Time& t2) noexcept;
+  friend bool operator>=(const Time& t1, const Time& t2) noexcept;
+
+  /** @brief 转换为 std::chrono::system_clock 时间点 */
+  std::chrono::system_clock::time_point chrono() const { return utcstamp().chrono(); }
+
+  int     year()        const noexcept { return year_; }         ///< 年
+  int     month()       const noexcept { return month_; }        ///< 月（1–12）
+  Weekday weekday()     const noexcept { return static_cast<Weekday>(weekday_); }  ///< 星期
+  int     day()         const noexcept { return day_; }          ///< 日（1–31）
+  int     hour()        const noexcept { return hour_; }         ///< 时（0–23）
+  int     minute()      const noexcept { return minute_; }       ///< 分（0–59）
+  int     second()      const noexcept { return second_; }       ///< 秒（0–59）
+  int     millisecond() const noexcept { return millisecond_; }  ///< 毫秒（0–999）
+  int     microsecond() const noexcept { return microsecond_; }  ///< 微秒（0–999）
+  int     nanosecond()  const noexcept { return nanosecond_; }   ///< 纳秒（0–999）
+
+  /** @brief 将字段按 UTC 解释得到的时刻 */
+  UtcTimestamp utcstamp() const;
+  /** @brief 将字段按本地时区解释得到的时刻 */
+  LocalTimestamp localstamp() const;
+
+  /**
+   * @brief 使用 strftime 格式串格式化（依据本对象字段，不做时区换算）
    *
-   * 当需要多个字段时，通过 toBrokenDown() 获取，比逐个调用 getXxx() 高效。
-   * month 范围 0–11（与 std::tm 一致）。
-   */
-  struct BrokenDownTime {
-    int year;         ///< 4 位年份，如 2024
-    int month;        ///< 0–11（0 = 一月）
-    int day;          ///< 1–31
-    int hours;        ///< 0–23
-    int minutes;      ///< 0–59
-    int seconds;      ///< 0–59
-    int milliseconds; ///< 0–999
-  };
-
-  /**
-   * @brief 默认构造：UTC 1970-01-01 00:00:00
-   * @see getCurrentTime
-   */
-  Time() = default;
-
-  /**
-   * @brief 从自 epoch 以来的毫秒数构造
-   * @param millisecondsSinceEpoch 自 Unix epoch 起的毫秒数
-   */
-  explicit Time(int64_t millisecondsSinceEpoch) noexcept;
-
-  /**
-   * @brief 从日期/时间组件构造
+   * 在标准 strftime 格式符之外，扩展支持三个亚秒 token（取小数秒的前 N 位）：
+   *   - %3f → 毫秒（3 位，如 "007"）
+   *   - %6f → 微秒（6 位）
+   *   - %9f → 纳秒（9 位）
+   * 这些 token 在调用 strftime 前被替换；%% 仍表示字面量 '%'，其后的 3f/6f/9f
+   * 按普通文本处理，不会被识别为 token。
    *
-   * @param year         4 位年份
-   * @param month        0–11（0 = 一月）
-   * @param day          1–31
-   * @param hours        0–23
-   * @param minutes      0–59
-   * @param seconds      0–59
-   * @param milliseconds 0–999
-   * @param useLocalTime true = 按本地时区解释，false = 按 UTC 解释
+   * @param format 格式字符串，如 "%Y-%m-%d %H:%M:%S.%3f"
    */
-  Time(int year, int month, int day, int hours, int minutes,
-       int seconds = 0, int milliseconds = 0, bool useLocalTime = true) noexcept;
-
-  Time(const Time&) = default;
-  Time& operator=(const Time&) = default;
-  ~Time() = default;
-
-  /** @brief 返回当前系统时间（system_clock，非单调，不适用于计时） */
-  static Time getCurrentTime() noexcept;
-
-  /** @brief 返回自 epoch 以来的毫秒数（system_clock） */
-  static int64_t currentTimeMillis() noexcept;
-
-  /** @brief 从 std::chrono::system_clock::time_point 构造 */
-  static Time fromTimePoint(std::chrono::system_clock::time_point tp) noexcept;
-
-  /**
-   * @brief 解析 ISO-8601 字符串
-   *
-   * 支持格式：
-   *   - 扩展格式：2024-01-15T10:30:00[.123][Z|+HH:MM|-HH:MM]
-   *   - 紧凑格式：20240115T103000[.123][Z|+HHMM|-HHMM]
-   *
-   * 解析失败时返回 epoch（1970-01-01T00:00:00Z）。
-   */
-  static Time fromISO8601(const std::string& iso8601);
-
-  /** @brief 返回自 epoch 以来的毫秒数 */
-  int64_t toMilliseconds() const noexcept { return millisSinceEpoch_; }
-
-  /** @brief 转换为 std::chrono::system_clock::time_point */
-  std::chrono::system_clock::time_point toTimePoint() const noexcept;
-
-  /**
-   * @brief 单次 localtime_r 调用分解全部字段
-   * @details 需要多个字段时应优先使用此方法，避免多次系统调用
-   */
-  BrokenDownTime toBrokenDown() const noexcept;
-
-  int getYear()         const noexcept;  ///< 4 位年份
-  int getMonth()        const noexcept;  ///< 0–11（0 = 一月）
-  int getDayOfMonth()   const noexcept;  ///< 1–31
-  int getDayOfWeek()    const noexcept;  ///< 0–6（0 = 周日）
-  int getDayOfYear()    const noexcept;  ///< 0–365
-  int getHours()        const noexcept;  ///< 0–23
-  int getMinutes()      const noexcept;  ///< 0–59
-  int getSeconds()      const noexcept;  ///< 0–59
-  int getMilliseconds() const noexcept;  ///< 0–999（当前秒内的毫秒）
-
-  int         getUTCOffsetSeconds()                   const noexcept;  ///< 本地时区与 UTC 的偏移秒数
-  std::string getUTCOffsetString(bool includeDivider) const;            ///< 如 "+08:00" 或 "+0800"，UTC 返回 "Z"
-  std::string getTimeZone()                           const;            ///< 时区名，如 "CST"
-
-  /**
-   * @brief 格式化为可读字符串（单次 localtime_r）
-   *
-   * @param includeDate     包含日期部分（如 "15 Jan 2024"）
-   * @param includeTime     包含时间部分
-   * @param includeSeconds  时间部分是否包含秒
-   * @param use24HourClock  true = 24 小时制，false = 12 小时制（带 am/pm）
-   */
-  std::string toString(bool includeDate, bool includeTime,
-                       bool includeSeconds = true, bool use24HourClock = false) const;
-
-  /** @brief 使用 strftime 格式字符串格式化（本地时区） */
   std::string formatted(const std::string& format) const;
 
-  /** @brief 序列化为 ISO-8601 字符串（含本地时区偏移） */
-  std::string toISO8601(bool includeDividerCharacters) const;
-
-  static std::string getMonthName(int monthNumber, bool abbreviated);    ///< monthNumber: 0–11；abbreviated=true 返回 "Jan"，false 返回 "January"
-  static std::string getWeekdayName(int dayNumber, bool abbreviated);    ///< dayNumber: 0–6；abbreviated=true 返回 "Mon"，false 返回 "Monday"
+  /**
+   * @brief 序列化为 ISO-8601 字符串（含毫秒与时区偏移）
+   *
+   * @param includeDividers true 输出扩展格式 "2024-01-15T10:30:00.123+08:00"；
+   *                        false 输出紧凑格式 "20240115T103000.123+0800"。
+   * 时区偏移：UtcTime 输出 "Z"，其余按本地时区偏移。
+   * @note 小数秒仅输出到毫秒（三位），微秒/纳秒分量不输出。
+   */
+  std::string toISO8601(bool includeDividers) const;
 
   /**
-   * @brief 自系统启动以来的毫秒数（int64_t，无回绕问题）
-   *
-   * 基于 steady_clock，单调递增，不受系统时钟调整影响。
-   * 适用于计时和性能测量，不适用于表示绝对时刻。
+   * @brief 格式化为可读字符串
+   * @param includeDate    含日期部分（"15 Jan 2024"）
+   * @param includeTime    含时间部分
+   * @param includeSeconds 时间部分是否含秒
+   * @param use24HourClock true 为 24 小时制，false 为 12 小时制（带 am/pm）
    */
-  static int64_t getMillisecondCounter() noexcept;
+  std::string toString(bool includeDate, bool includeTime,
+                       bool includeSeconds = true, bool use24HourClock = true) const;
+
+  /** @brief 月份名。month：1–12；abbreviated=true 返回 "Jan"，否则 "January" */
+  static std::string getMonthName(int month, bool abbreviated);
+  /** @brief 星期名。day：0–6（0=周日）；abbreviated=true 返回 "Mon"，否则 "Monday" */
+  static std::string getWeekdayName(int day, bool abbreviated);
 
   /**
-   * @brief 高精度计时器，返回毫秒（纳秒级分辨率）
+   * @brief 解析 ISO-8601 字符串为绝对时刻（UtcTime）
    *
-   * 适用于微基准测试；一般计时优先使用 getMillisecondCounter()。
+   * 支持扩展格式 "2024-01-15T10:30:00[.fff][Z|±HH:MM]" 与紧凑格式
+   * "20240115T103000[.fff][Z|±HHMM]"。缺省时区视为 UTC。
+   * @note 小数秒按三位毫秒解析（fff）；解析失败或字段越界时返回 epoch。
    */
-  static double getMillisecondCounterHiRes() noexcept;
+  static UtcTime fromISO8601(const std::string& iso8601);
 
-  Time& operator+=(Timespan delta) noexcept;
-  Time& operator-=(Timespan delta) noexcept;
+  /** @brief epoch 日期时间（1970-01-01T00:00:00） */
+  static Time epoch() { return Time(1970, 1, 1); }
 
- private:
-  int64_t millisSinceEpoch_{0};
+  /** @brief 交换两个实例 */
+  void swap(Time& other) noexcept;
+
+ protected:
+  int year_;
+  int month_;
+  int weekday_;
+  int day_;
+  int hour_;
+  int minute_;
+  int second_;
+  int millisecond_;
+  int microsecond_;
+  int nanosecond_;
+
+  /** @brief 由 Timestamp 分解构造（按 UTC 分解）；派生类可覆盖具体时区分解 */
+  explicit Time(const Timestamp& timestamp);
+
+  /**
+   * @brief 本对象相对 UTC 的偏移秒数（供 ISO-8601 输出）
+   * @details 基类与 UtcTime 的字段视为 UTC（偏移 0，输出 "Z"）；LocalTime 覆盖
+   *          为本地时区偏移。因基类由 Timestamp 分解时按 UTC 解释，故算术运算
+   *          得到的 Time 也以 UTC 标注，避免时刻被错误偏移。
+   */
+  virtual int utcOffsetSeconds() const;
 };
 
-Time     operator+(Time time, Timespan delta) noexcept;
-Time     operator+(Timespan delta, Time time) noexcept;
-Time     operator-(Time time, Timespan delta) noexcept;
-Timespan operator-(Time time1, Time time2)   noexcept;
+/** @brief UTC 日期时间 */
+class UtcTime : public Time {
+ public:
+  using Time::Time;
+  using Time::chrono;
 
-bool operator==(Time time1, Time time2) noexcept;
-bool operator!=(Time time1, Time time2) noexcept;
-bool operator< (Time time1, Time time2) noexcept;
-bool operator<=(Time time1, Time time2) noexcept;
-bool operator> (Time time1, Time time2) noexcept;
-bool operator>=(Time time1, Time time2) noexcept;
+  /** @brief 以当前 UTC 时刻初始化 */
+  UtcTime() : UtcTime(UtcTimestamp()) {}
+  /** @brief 由时刻分解为 UTC 字段 */
+  explicit UtcTime(const Timestamp& timestamp);
+  /** @brief 由任意 std::chrono 时间点分解为 UTC 字段 */
+  template <class Clock, class Duration>
+  explicit UtcTime(const std::chrono::time_point<Clock, Duration>& time_point) : UtcTime(Timestamp(time_point)) {}
+  /** @brief 由另一个 Time 复制字段 */
+  UtcTime(const Time& time) noexcept : Time(time) {}
+  /** @brief 由本地时间转换为等价的 UTC 时间 */
+  UtcTime(const LocalTime& time);
+};
+
+/** @brief 本地时区日期时间 */
+class LocalTime : public Time {
+ public:
+  using Time::Time;
+  using Time::chrono;
+
+  /** @brief 以当前本地时刻初始化 */
+  LocalTime() : LocalTime(UtcTimestamp()) {}
+  /** @brief 由时刻分解为本地字段 */
+  explicit LocalTime(const Timestamp& timestamp);
+  /** @brief 由任意 std::chrono 时间点分解为本地字段 */
+  template <class Clock, class Duration>
+  explicit LocalTime(const std::chrono::time_point<Clock, Duration>& time_point) : LocalTime(Timestamp(time_point)) {}
+  /** @brief 由另一个 Time 复制字段 */
+  LocalTime(const Time& time) noexcept : Time(time) {}
+  /** @brief 由 UTC 时间转换为等价的本地时间 */
+  LocalTime(const UtcTime& time);
+
+ protected:
+  int utcOffsetSeconds() const override;
+};
+
+inline void swap(Time& t1, Time& t2) noexcept { t1.swap(t2); }
 
 }  // namespace time
 }  // namespace pickup

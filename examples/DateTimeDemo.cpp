@@ -6,48 +6,47 @@
 using namespace pickup::time;
 
 void time_example() {
-  // 获取当前时间
-  Time now = Time::getCurrentTime();
-  std::cout << "Current time ms since epoch: " << now.toMilliseconds() << std::endl;
+  // 当前本地时间与 UTC 时间
+  LocalTime now;
+  UtcTime utcNow;
+  std::cout << "Local time: " << now.toISO8601(true) << std::endl;
+  std::cout << "UTC time:   " << utcNow.toISO8601(true) << std::endl;
 
-  // 从毫秒数构造
-  Time ts(1633036800000LL);  // 2021-10-01 00:00:00 UTC
-  std::cout << "Time from ms: " << ts.toMilliseconds() << " ms since epoch" << std::endl;
+  // 从字段构造（月 1–12）
+  UtcTime ts(2021, 10, 1);  // 2021-10-01 00:00:00 UTC
+  std::cout << "UtcTime from fields: " << ts.toISO8601(true) << std::endl;
 
   // 时间运算
-  Time ts1 = now + Timespan::seconds(1.0);
-  std::cout << "After +1s: " << ts1.toMilliseconds() << " ms since epoch" << std::endl;
-  Time ts2 = now - Timespan::seconds(1.0);
-  std::cout << "After -1s: " << ts2.toMilliseconds() << " ms since epoch" << std::endl;
+  UtcTime ts1 = now + Timespan::seconds(1);
+  std::cout << "Now + 1s: " << ts1.toISO8601(true) << std::endl;
+  UtcTime ts2 = now - Timespan::seconds(1);
+  std::cout << "Now - 1s: " << ts2.toISO8601(true) << std::endl;
 }
 
 void timespan_example() {
   // 创建时间跨度
-  Timespan span1 = Timespan::hours(1.0) + Timespan::minutes(2.0) + Timespan::seconds(3.0);
-  std::cout << "Timespan: " << span1.inMilliseconds() << " ms" << std::endl;
+  Timespan span1 = Timespan::hours(1) + Timespan::minutes(2) + Timespan::seconds(3);
+  std::cout << "Timespan: " << span1.milliseconds() << " ms" << std::endl;
 
-  Timespan span2 = Timespan::seconds(1.0);
-  std::cout << "Timespan 1s: " << span2.inMilliseconds() << " ms" << std::endl;
+  Timespan span2 = Timespan::seconds(1);
+  std::cout << "Timespan 1s: " << span2.milliseconds() << " ms" << std::endl;
 
   Timespan span3 = span1 + span2;
-  std::cout << "Sum: " << span3.inMilliseconds() << " ms" << std::endl;
+  std::cout << "Sum: " << span3.milliseconds() << " ms" << std::endl;
   Timespan span4 = span1 - span2;
-  std::cout << "Diff: " << span4.inMilliseconds() << " ms" << std::endl;
+  std::cout << "Diff: " << span4.milliseconds() << " ms" << std::endl;
 }
 
 void datetime_example() {
-  // 从字段构造（月份 0-11）
-  Time dt(2025, 3, 14, 10, 1, 17);
-  auto bd = dt.toBrokenDown();
-  std::cout << "DateTime: " << bd.year << "-" << (bd.month + 1) << "-" << bd.day
-            << " " << bd.hours << ":" << bd.minutes << ":" << bd.seconds << std::endl;
-  std::cout << "Ms since epoch: " << dt.toMilliseconds() << std::endl;
+  // 从字段构造（月 1–12）
+  UtcTime dt(2025, 3, 14, 10, 1, 17);
+  std::cout << "DateTime: " << dt.year() << "-" << dt.month() << "-" << dt.day()
+            << " " << dt.hour() << ":" << dt.minute() << ":" << dt.second() << std::endl;
 
-  // 获取当前时间并分解字段
-  Time now = Time::getCurrentTime();
-  auto now_bd = now.toBrokenDown();
-  std::cout << "Now: " << now_bd.year << "-" << (now_bd.month + 1) << "-" << now_bd.day
-            << " " << now_bd.hours << ":" << now_bd.minutes << ":" << now_bd.seconds << std::endl;
+  // 获取当前本地时间并输出各字段
+  LocalTime now;
+  std::cout << "Now: " << now.year() << "-" << now.month() << "-" << now.day()
+            << " " << now.hour() << ":" << now.minute() << ":" << now.second() << std::endl;
 }
 
 int main() {
