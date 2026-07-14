@@ -89,6 +89,7 @@ void trim(std::string& str, const std::string& chars) {
 }
 
 std::string replaceAll(const std::string& str, const std::string& from, const std::string& to) {
+  if (from.empty()) return str;
   std::string result = str;
   size_t pos = 0;
   while ((pos = result.find(from, pos)) != std::string::npos) {

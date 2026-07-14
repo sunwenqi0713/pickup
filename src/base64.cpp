@@ -146,8 +146,8 @@ std::string toUrlSafe(const std::string& input) {
   if (found == std::string::npos) return "";
 
   // 将标准 Base64 字母表转换为 URL-safe Base64
-  utils::replaceAll(temp, "+", "-");
-  utils::replaceAll(temp, "/", "_");
+  temp = utils::replaceAll(temp, "+", "-");
+  temp = utils::replaceAll(temp, "/", "_");
 
   return temp.substr(0, found + 1);
 }

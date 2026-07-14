@@ -177,8 +177,12 @@ void ByteBuffer::set(const Byte* begin, const Byte* end) {
 }
 
 void ByteBuffer::resize(size_t size) {
-  if (size != capacity_) {
+  auto oldSize = size_;
+  if (size > capacity_) {
     reallocate(size);
+  }
+  if (size > oldSize) {
+    std::memset(data_ + oldSize, 0, size - oldSize);
   }
   size_ = size;
 }

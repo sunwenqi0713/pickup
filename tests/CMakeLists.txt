@@ -18,8 +18,38 @@ FetchContent_MakeAvailable(googletest)
 find_package(Threads REQUIRED)
 
 set(TEST_SOURCES
-    BitOperatorTest.cpp
     anglesTest.cpp
+    base64Test.cpp
+    BitOperatorTest.cpp
+    ByteBufferTest.cpp
+    ChannelTest.cpp
+    CircularBufferTest.cpp
+    CircularQueueTest.cpp
+    CounterLatchTest.cpp
+    DynamicLibraryTest.cpp
+    EndianTest.cpp
+    EventTest.cpp
+    FactoryTest.cpp
+    FileUtilsTest.cpp
+    hexTest.cpp
+    LazyTest.cpp
+    LexicalCastTest.cpp
+    MPSCQueueTest.cpp
+    numericTest.cpp
+    ObserverTest.cpp
+    PluginManagerTest.cpp
+    ScopeGuardTest.cpp
+    SemaphoreTest.cpp
+    StopWatchTest.cpp
+    StringUtilsTest.cpp
+    ThreadPoolTest.cpp
+    ThreadTest.cpp
+    TimeTest.cpp
+    TimestampTest.cpp
+    TimespanTest.cpp
+    TimezoneTest.cpp
+    TimerTest.cpp
+    urlTest.cpp
 )
 
 add_executable(${PROJECT_NAME}_test ${TEST_SOURCES})
