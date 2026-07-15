@@ -2,18 +2,18 @@
 #include <memory>
 #include <string>
 
-#include "pickup/plugin/PluginBase.h"
+#include "pickup/plugin/Plugin.h"
 #include "pickup/plugin/PluginManager.h"
 
 using namespace pickup::plugin;
 
 namespace {
 
-class MockPlugin : public PluginBase {
+class MockPlugin : public Plugin {
  public:
   explicit MockPlugin(const std::string& name,
                       const std::string& version = "1.0")
-      : PluginBase(name, version) {}
+      : Plugin(name, version) {}
 
   bool initialize() override {
     if (failInit_) return false;

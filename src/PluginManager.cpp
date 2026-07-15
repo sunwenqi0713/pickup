@@ -17,8 +17,8 @@ static constexpr const char* kPluginExtension = ".so";
 PluginManager::~PluginManager() { destroyAll(); }
 
 bool PluginManager::loadPlugin(const std::string& path) {
-  using CreateFunc = PluginBase* (*)();
-  using DestroyFunc = void (*)(PluginBase*);
+  using CreateFunc = Plugin* (*)();
+  using DestroyFunc = void (*)(Plugin*);
 
   auto library = std::make_unique<utils::DynamicLibrary>();
   if (!library->load(path)) {
@@ -39,7 +39,7 @@ bool PluginManager::loadPlugin(const std::string& path) {
     return false;
   }
 
-  PluginBase* instance = createFn();
+  Plugin* instance = createFn();
   if (!instance) {
     std::cerr << "[PluginManager] createPlugin() returned nullptr for '" << path << "'\n";
     return false;
@@ -54,12 +54,12 @@ bool PluginManager::loadPlugin(const std::string& path) {
     return false;
   }
 
-  index_.emplace(name, std::shared_ptr<PluginBase>(instance, destroyFn));
+  index_.emplace(name, std::shared_ptr<Plugin>(instance, destroyFn));
   plugins_.push_back({std::move(name), index_[name], std::move(library)});
   return true;
 }
 
-void PluginManager::addPlugin(const std::string& name, std::shared_ptr<PluginBase> plugin) {
+void PluginManager::addPlugin(const std::string& name, std::shared_ptr<Plugin> plugin) {
   std::lock_guard<std::mutex> lock(mutex_);
   index_.emplace(name, plugin);
   plugins_.push_back({name, std::move(plugin), nullptr});
@@ -107,7 +107,7 @@ void PluginManager::destroyAll() {
   plugins_.clear();
 }
 
-std::shared_ptr<PluginBase> PluginManager::getPlugin(const std::string& name) const {
+std::shared_ptr<Plugin> PluginManager::getPlugin(const std::string& name) const {
   std::lock_guard<std::mutex> lock(mutex_);
   auto it = index_.find(name);
   return it != index_.end() ? it->second : nullptr;

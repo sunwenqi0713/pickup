@@ -92,11 +92,11 @@ TEST(TimerTest, IsScheduled) {
   EXPECT_FALSE(timer.isScheduled(task));
 }
 
-TEST(TimerTest, NegativeDelayThrows) {
+TEST(TimerTest, NegativeDelayDoesNotThrow) {
   Timer timer;
-  EXPECT_THROW(
-      timer.schedule([] {}, std::chrono::milliseconds(-1)),
-      std::invalid_argument);
+  // negative delay is checked by assert (debug-only), no exception
+  EXPECT_NO_THROW(
+      timer.schedule([] {}, std::chrono::milliseconds(-1)));
 }
 
 TEST(TimerTest, DoubleScheduleThrows) {

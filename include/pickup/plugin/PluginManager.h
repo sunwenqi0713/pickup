@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "pickup/plugin/PluginBase.h"
+#include "pickup/plugin/Plugin.h"
 #include "pickup/utils/DynamicLibrary.h"
 
 namespace pickup {
@@ -41,7 +41,7 @@ class PluginManager {
    * @param plugin 插件实例
    * @note 适用于非动态库的插件，如静态注册或测试
    */
-  void addPlugin(const std::string& name, std::shared_ptr<PluginBase> plugin);
+  void addPlugin(const std::string& name, std::shared_ptr<Plugin> plugin);
 
   /**
    * @brief 加载目录下所有平台对应的插件文件
@@ -66,7 +66,7 @@ class PluginManager {
    * @brief 按名称查找插件
    * @return 找到返回插件共享指针，未找到返回 nullptr
    */
-  [[nodiscard]] std::shared_ptr<PluginBase> getPlugin(const std::string& name) const;
+  [[nodiscard]] std::shared_ptr<Plugin> getPlugin(const std::string& name) const;
 
   /** @brief 当前已加载的插件数量 */
   [[nodiscard]] size_t pluginCount() const;
@@ -74,12 +74,12 @@ class PluginManager {
  private:
   struct PluginEntry {
     std::string name;
-    std::shared_ptr<PluginBase> plugin;
+    std::shared_ptr<Plugin> plugin;
     std::unique_ptr<utils::DynamicLibrary> library;  ///< 外部注册的插件为 nullptr
   };
 
   std::vector<PluginEntry> plugins_;                                   ///< 按注册顺序排列
-  std::unordered_map<std::string, std::shared_ptr<PluginBase>> index_;  ///< 名称索引
+  std::unordered_map<std::string, std::shared_ptr<Plugin>> index_;  ///< 名称索引
   mutable std::mutex mutex_;
   bool initialized_{false};
 };

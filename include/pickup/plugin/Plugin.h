@@ -8,19 +8,19 @@ namespace plugin {
 /**
  * @brief 插件基类，所有插件必须继承此类并实现生命周期接口
  */
-class PluginBase {
+class Plugin {
  public:
   /**
    * @brief 构造插件
    * @param name    插件名称
    * @param version 插件版本
    */
-  PluginBase(std::string name = "", std::string version = "")
+  Plugin(std::string name = "", std::string version = "")
       : name_(std::move(name)), version_(std::move(version)) {}
-  virtual ~PluginBase() = default;
+  virtual ~Plugin() = default;
 
-  PluginBase(const PluginBase&) = delete;
-  PluginBase& operator=(const PluginBase&) = delete;
+  Plugin(const Plugin&) = delete;
+  Plugin& operator=(const Plugin&) = delete;
 
   /** @brief 获取插件名称 */
   const std::string& name() const { return name_; }
@@ -59,10 +59,10 @@ class PluginBase {
 
 #define REGISTER_PLUGIN(PluginClass)                                      \
   extern "C" {                                                            \
-  PLUGIN_EXPORT pickup::plugin::PluginBase* createPlugin() {             \
+  PLUGIN_EXPORT pickup::plugin::Plugin* createPlugin() {                 \
     return new PluginClass();                                             \
   }                                                                       \
-  PLUGIN_EXPORT void destroyPlugin(pickup::plugin::PluginBase* plugin) { \
+  PLUGIN_EXPORT void destroyPlugin(pickup::plugin::Plugin* plugin) {     \
     delete plugin;                                                        \
   }                                                                       \
   }
