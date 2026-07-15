@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <cstring>
 
-#include "pickup/utils/CircularBuffer.h"
+#include "pickup/buffer/CircularBuffer.h"
 
-using namespace pickup::utils;
+using namespace pickup::buffer;
 
 TEST(CircularBufferTest, DefaultState) {
   CircularBuffer buf;

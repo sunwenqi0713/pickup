@@ -1,11 +1,11 @@
-#include "pickup/utils/CircularBuffer.h"
+#include "pickup/buffer/CircularBuffer.h"
 
 #include <cassert>
 #include <cstring>
 #include <algorithm>
 
 namespace pickup {
-namespace utils {
+namespace buffer {
 
 CircularBuffer::~CircularBuffer() { deallocate(); }
 
@@ -133,5 +133,5 @@ size_t CircularBuffer::pop_front(uint8_t* buf, size_t buf_max_len) {
   }
 }
 
-}  // namespace utils
+}  // namespace buffer
 }  // namespace pickup

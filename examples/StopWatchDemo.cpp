@@ -2,9 +2,9 @@
 #include <iostream>
 #include <thread>
 
-#include "pickup/utils/StopWatch.hpp"
+#include "pickup/time/StopWatch.hpp"
 
-using namespace pickup::utils;
+using namespace pickup::time;
 
 int main() {
   StopWatch sw;

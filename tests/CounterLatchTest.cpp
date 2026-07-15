@@ -3,9 +3,9 @@
 #include <thread>
 #include <vector>
 
-#include "pickup/utils/CounterLatch.h"
+#include "pickup/thread/CounterLatch.h"
 
-using namespace pickup::utils;
+using namespace pickup::thread;
 
 TEST(CounterLatchTest, InitialCountZero) {
   CounterLatch latch;

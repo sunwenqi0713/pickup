@@ -4,7 +4,7 @@
 #include <cstdint>
 
 namespace pickup {
-namespace utils {
+namespace buffer {
 
 /**
  * @brief FIFO 环形缓冲区
@@ -72,5 +72,5 @@ class CircularBuffer {
   size_t end_{0};
 };
 
-}  // namespace utils
+}  // namespace buffer
 }  // namespace pickup

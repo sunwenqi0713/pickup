@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace pickup {
-namespace utils {
+namespace buffer {
 
 /**
  * @brief 简单的字节缓冲区，std::vector<uint8_t> 的轻量级替代品
@@ -147,5 +147,5 @@ class ByteBuffer {
   Byte* data_{nullptr};  ///<  指向数据的指针
 };
 
-}  // namespace utils
+}  // namespace buffer
 }  // namespace pickup

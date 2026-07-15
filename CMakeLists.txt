@@ -31,28 +31,28 @@ option(PICKUP_ENABLE_WARNINGS "Enable compiler warnings" ON)
 # ============================================================
 
 set(PICKUP_SOURCES
-    src/angles.cpp
-    src/Application.cpp
-    src/base64.cpp
-    src/ByteBuffer.cpp
-    src/CircularBuffer.cpp
-    src/Component.cpp
-    src/DynamicLibrary.cpp
-    src/Event.cpp
-    src/FileUtils.cpp
-    src/hex.cpp
-    src/Observer.cpp
-    src/PluginManager.cpp
-    src/SignalHandler.cpp
-    src/StringUtils.cpp
-    src/Thread.cpp
-    src/Timer.cpp
-    src/ThreadPool.cpp
-    src/Time.cpp
-    src/Timespan.cpp
-    src/Timestamp.cpp
-    src/Timezone.cpp
-    src/url.cpp
+    src/application/Application.cpp
+    src/application/Component.cpp
+    src/application/SignalHandler.cpp
+    src/codec/base64.cpp
+    src/codec/hex.cpp
+    src/codec/url.cpp
+    src/math/angles.cpp
+    src/plugin/PluginManager.cpp
+    src/thread/Event.cpp
+    src/thread/Thread.cpp
+    src/thread/ThreadPool.cpp
+    src/time/Time.cpp
+    src/time/Timespan.cpp
+    src/time/Timestamp.cpp
+    src/time/Timezone.cpp
+    src/timer/Timer.cpp
+    src/buffer/ByteBuffer.cpp
+    src/buffer/CircularBuffer.cpp
+    src/utils/DynamicLibrary.cpp
+    src/utils/FileUtils.cpp
+    src/utils/Observer.cpp
+    src/utils/StringUtils.cpp
 )
 
 # ============================================================

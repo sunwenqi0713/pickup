@@ -4,9 +4,9 @@
 #include <thread>
 #include <vector>
 
-#include "pickup/utils/MPSCQueue.h"
+#include "pickup/thread/MPSCQueue.h"
 
-using namespace pickup::utils;
+using namespace pickup::thread;
 
 TEST(MPSCQueueTest, PushPop) {
   MPSCQueue<int> queue(16);

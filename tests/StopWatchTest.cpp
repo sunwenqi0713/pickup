@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "pickup/utils/StopWatch.hpp"
+#include "pickup/time/StopWatch.hpp"
 
-using namespace pickup::utils;
+using namespace pickup::time;
 
 TEST(StopWatchTest, DefaultConstructorStopped) {
   StopWatch sw;

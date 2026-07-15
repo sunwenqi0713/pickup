@@ -3,9 +3,9 @@
 #include <thread>
 #include <vector>
 
-#include "pickup/utils/CircularQueue.hpp"
+#include "pickup/thread/CircularQueue.hpp"
 
-using namespace pickup::utils;
+using namespace pickup::thread;
 
 TEST(CircularQueueTest, DefaultState) {
   CircularQueue<int> q(8);

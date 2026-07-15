@@ -6,7 +6,7 @@
 #include <string>
 
 namespace pickup {
-namespace utils {
+namespace time {
 /**
  * @brief 时间间隔测量工具类（秒表）
  *
@@ -193,5 +193,5 @@ class StopWatchGeneric {
  */
 using StopWatch = StopWatchGeneric<std::chrono::steady_clock>;
 
-}  // namespace utils
+}  // namespace time
 }  // namespace pickup

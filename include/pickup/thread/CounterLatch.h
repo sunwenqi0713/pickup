@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 namespace pickup {
-namespace utils {
+namespace thread {
 /**
  * 一个类似于 std::latch 的实用工具类，但允许增加计数。
  * 当需要进入某代码块的线程数可能动态变化时，这个类很有用。
@@ -95,5 +95,5 @@ class CounterLatch final {
   long count_;                    ///< 门闩计数器
 };
 
-}  // namespace utils
+}  // namespace thread
 }  // namespace pickup

@@ -8,7 +8,7 @@
 #include <utility>
 
 namespace pickup {
-namespace utils {
+namespace thread {
 
 /**
  * @brief 无锁多生产者单消费者（MPSC）有界队列
@@ -217,5 +217,5 @@ class MPSCQueue {
   alignas(CACHE_LINE_SIZE) std::atomic<std::size_t> tail_{0};  ///< 仅由消费者写入
 };
 
-}  // namespace utils
+}  // namespace thread
 }  // namespace pickup

@@ -3,9 +3,9 @@
 #include <string>
 #include <string_view>
 
-#include "pickup/utils/ByteBuffer.h"
+#include "pickup/buffer/ByteBuffer.h"
 
-using namespace pickup::utils;
+using namespace pickup::buffer;
 
 TEST(ByteBufferTest, DefaultConstructor) {
   ByteBuffer buf;

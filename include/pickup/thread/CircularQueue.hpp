@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace pickup {
-namespace utils {
+namespace thread {
 
 /**
  * @brief 线程安全的固定容量循环队列
@@ -174,5 +174,5 @@ class CircularQueue {
   bool closed_;
 };
 
-}  // namespace utils
+}  // namespace thread
 }  // namespace pickup

@@ -1,7 +1,7 @@
-#include "pickup/utils/ByteBuffer.h"
+#include "pickup/buffer/ByteBuffer.h"
 
 namespace pickup {
-namespace utils {
+namespace buffer {
 
 constexpr size_t kMinAllocationSize = sizeof(size_t);
 
@@ -231,5 +231,5 @@ std::string_view ByteBuffer::toStringView() const {
   return std::string_view(reinterpret_cast<const char*>(data_), size_);
 }
 
-}  // namespace utils
+}  // namespace buffer
 }  // namespace pickup
