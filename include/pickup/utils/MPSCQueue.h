@@ -51,30 +51,30 @@ class MPSCQueue {
    * @param capacity 容量（至少为 1，会向上对齐到 2 的幂以便高效取模）
    */
   explicit MPSCQueue(std::size_t capacity)
-      : _capacity(nextPowerOfTwo(capacity)),
-        _mask(_capacity - 1),
-        _slots(static_cast<Slot*>(::operator new(_capacity * sizeof(Slot)))) {
+      : capacity_(nextPowerOfTwo(capacity)),
+        mask_(capacity_ - 1),
+        slots_(static_cast<Slot*>(::operator new(capacity_ * sizeof(Slot)))) {
     // 初始化每个槽位的序列号
-    for (std::size_t i = 0; i < _capacity; ++i) {
-      new (&_slots[i].sequence) std::atomic<std::size_t>(i);
+    for (std::size_t i = 0; i < capacity_; ++i) {
+      new (&slots_[i].sequence) std::atomic<std::size_t>(i);
     }
   }
 
   /** @brief 析构队列 */
   ~MPSCQueue() {
     // 析构残留的元素
-    std::size_t tail = _tail.load(std::memory_order_relaxed);
-    std::size_t head = _head.load(std::memory_order_acquire);
+    std::size_t tail = tail_.load(std::memory_order_relaxed);
+    std::size_t head = head_.load(std::memory_order_acquire);
     while (tail != head) {
       std::size_t idx = index(tail);
-      _slots[idx].ptr()->~T();
+      slots_[idx].ptr()->~T();
       ++tail;
     }
     // 析构槽位中的 atomic 并释放内存
-    for (std::size_t i = 0; i < _capacity; ++i) {
-      _slots[i].sequence.~atomic();
+    for (std::size_t i = 0; i < capacity_; ++i) {
+      slots_[i].sequence.~atomic();
     }
-    ::operator delete(_slots);
+    ::operator delete(slots_);
   }
 
   MPSCQueue(const MPSCQueue&) = delete;
@@ -107,16 +107,16 @@ class MPSCQueue {
    */
   template <typename... Args>
   bool emplace(Args&&... args) {
-    std::size_t head = _head.load(std::memory_order_relaxed);
+    std::size_t head = head_.load(std::memory_order_relaxed);
 
     for (;;) {
-      Slot& slot = _slots[index(head)];
+      Slot& slot = slots_[index(head)];
       std::size_t seq = slot.sequence.load(std::memory_order_acquire);
       std::intptr_t diff = static_cast<std::intptr_t>(seq) - static_cast<std::intptr_t>(head);
 
       if (diff == 0) {
         // 槽位可写，尝试抢占
-        if (_head.compare_exchange_weak(head, head + 1, std::memory_order_relaxed)) {
+        if (head_.compare_exchange_weak(head, head + 1, std::memory_order_relaxed)) {
           // 抢占成功，原地构造元素
           new (slot.ptr()) T(std::forward<Args>(args)...);
           // 发布：通知消费者此槽位已就绪
@@ -129,7 +129,7 @@ class MPSCQueue {
         return false;
       } else {
         // 其他生产者正在写此槽位，重新加载 head 并重试
-        head = _head.load(std::memory_order_relaxed);
+        head = head_.load(std::memory_order_relaxed);
       }
     }
   }
@@ -141,8 +141,8 @@ class MPSCQueue {
    * @note 仅允许单一消费者线程调用
    */
   bool tryPop(T& item) {
-    std::size_t tail = _tail.load(std::memory_order_relaxed);
-    Slot& slot = _slots[index(tail)];
+    std::size_t tail = tail_.load(std::memory_order_relaxed);
+    Slot& slot = slots_[index(tail)];
     std::size_t seq = slot.sequence.load(std::memory_order_acquire);
     std::intptr_t diff = static_cast<std::intptr_t>(seq) - static_cast<std::intptr_t>(tail + 1);
 
@@ -151,8 +151,8 @@ class MPSCQueue {
       item = std::move(*slot.ptr());
       slot.ptr()->~T();
       // 将序列号重置为 tail + capacity，标记此槽位可供生产者再次使用
-      slot.sequence.store(tail + _capacity, std::memory_order_release);
-      _tail.store(tail + 1, std::memory_order_relaxed);
+      slot.sequence.store(tail + capacity_, std::memory_order_release);
+      tail_.store(tail + 1, std::memory_order_relaxed);
       return true;
     } else if (diff < 0) {
       // 队列为空，或生产者尚未完成写入
@@ -168,8 +168,8 @@ class MPSCQueue {
    * @return 元素数量（近似值，生产者可能正在并发修改）
    */
   [[nodiscard]] std::size_t size() const {
-    std::size_t head = _head.load(std::memory_order_acquire);
-    std::size_t tail = _tail.load(std::memory_order_acquire);
+    std::size_t head = head_.load(std::memory_order_acquire);
+    std::size_t tail = tail_.load(std::memory_order_acquire);
     return head - tail;
   }
 
@@ -181,7 +181,7 @@ class MPSCQueue {
   [[nodiscard]] bool empty() const { return size() == 0; }
 
   /** @brief 返回队列容量 */
-  [[nodiscard]] std::size_t capacity() const { return _capacity; }
+  [[nodiscard]] std::size_t capacity() const { return capacity_; }
 
  private:
   struct Slot {
@@ -206,15 +206,15 @@ class MPSCQueue {
     return n + 1;
   }
 
-  std::size_t index(std::size_t pos) const { return pos & _mask; }
+  std::size_t index(std::size_t pos) const { return pos & mask_; }
 
-  const std::size_t _capacity;
-  const std::size_t _mask;
-  Slot* const _slots;
+  const std::size_t capacity_;
+  const std::size_t mask_;
+  Slot* const slots_;
 
   // head 与 tail 分离到不同缓存行，避免 false sharing
-  alignas(CACHE_LINE_SIZE) std::atomic<std::size_t> _head{0};  ///< 由生产者写入（CAS）
-  alignas(CACHE_LINE_SIZE) std::atomic<std::size_t> _tail{0};  ///< 仅由消费者写入
+  alignas(CACHE_LINE_SIZE) std::atomic<std::size_t> head_{0};  ///< 由生产者写入（CAS）
+  alignas(CACHE_LINE_SIZE) std::atomic<std::size_t> tail_{0};  ///< 仅由消费者写入
 };
 
 }  // namespace utils
