@@ -49,6 +49,7 @@ set(PICKUP_SOURCES
     src/timer/Timer.cpp
     src/buffer/ByteBuffer.cpp
     src/buffer/CircularBuffer.cpp
+    src/config/INIReader.cpp
     src/utils/DynamicLibrary.cpp
     src/utils/FileUtils.cpp
     src/utils/Observer.cpp

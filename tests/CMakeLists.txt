@@ -32,6 +32,7 @@ set(TEST_SOURCES
     FactoryTest.cpp
     FileUtilsTest.cpp
     hexTest.cpp
+    INIReaderTest.cpp
     LazyTest.cpp
     LexicalCastTest.cpp
     MPSCQueueTest.cpp
