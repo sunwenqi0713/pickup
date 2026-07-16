@@ -38,6 +38,7 @@ set(TEST_SOURCES
     numericTest.cpp
     ObserverTest.cpp
     PluginManagerTest.cpp
+    SPSCQueueTest.cpp
     ScopeGuardTest.cpp
     SemaphoreTest.cpp
     StopWatchTest.cpp
