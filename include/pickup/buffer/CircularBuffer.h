@@ -41,13 +41,13 @@ class CircularBuffer {
    * @brief 返回可写入的剩余空间
    * @return 可用字节数
    */
-  [[nodiscard]] size_t space_available() const;
+  [[nodiscard]] size_t available() const;
 
   /**
    * @brief 返回已写入的数据量
    * @return 已使用字节数
    */
-  [[nodiscard]] size_t space_used() const;
+  [[nodiscard]] size_t used() const;
 
   /**
    * @brief 将数据写入环形缓冲区
@@ -55,7 +55,7 @@ class CircularBuffer {
    * @param buf_len 要写入的字节数
    * @return 空间足够并成功写入返回 true，否则返回 false
    */
-  bool push_back(const uint8_t* buf, size_t buf_len);
+  bool write(const uint8_t* buf, size_t buf_len);
 
   /**
    * @brief 从环形缓冲区读取数据
@@ -63,7 +63,7 @@ class CircularBuffer {
    * @param max_buf_len 最多读取的字节数
    * @return 实际读取的字节数，缓冲区为空时返回 0
    */
-  size_t pop_front(uint8_t* buf, size_t max_buf_len);
+  size_t read(uint8_t* buf, size_t max_buf_len);
 
  private:
   size_t size_{0};

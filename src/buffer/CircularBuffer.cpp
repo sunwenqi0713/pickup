@@ -25,7 +25,7 @@ void CircularBuffer::deallocate() {
   size_ = 0;
 }
 
-size_t CircularBuffer::space_available() const {
+size_t CircularBuffer::available() const {
   if (start_ > end_) {
     return start_ - end_ - 1;
 
@@ -34,7 +34,7 @@ size_t CircularBuffer::space_available() const {
   }
 }
 
-size_t CircularBuffer::space_used() const {
+size_t CircularBuffer::used() const {
   if (start_ <= end_) {
     return end_ - start_;
 
@@ -44,7 +44,7 @@ size_t CircularBuffer::space_used() const {
   }
 }
 
-bool CircularBuffer::push_back(const uint8_t* buf, size_t buf_len) {
+bool CircularBuffer::write(const uint8_t* buf, size_t buf_len) {
   if (buf_len == 0 || buf == nullptr) {
     // 无数据可添加，直接返回 false
     return false;
@@ -88,7 +88,7 @@ bool CircularBuffer::push_back(const uint8_t* buf, size_t buf_len) {
   return true;
 }
 
-size_t CircularBuffer::pop_front(uint8_t* buf, size_t buf_max_len) {
+size_t CircularBuffer::read(uint8_t* buf, size_t buf_max_len) {
   if (buf == nullptr) {
     // 用户必须提供有效的输出指针
     return 0;
