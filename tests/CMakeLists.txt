@@ -30,6 +30,7 @@ set(TEST_SOURCES
     EndianTest.cpp
     EventTest.cpp
     FactoryTest.cpp
+    FlagsTest.cpp
     FileUtilsTest.cpp
     hexTest.cpp
     INIReaderTest.cpp
